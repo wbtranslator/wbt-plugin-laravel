@@ -19,7 +19,7 @@ class TranslatorController extends BaseController
 	{
 		$this->apiKey = env('TRANSLATOR_API_KEY');
 		$this->client = new Client([
-			'base_uri' => 'http://192.168.88.149:8080/'
+			'base_uri' => 'http://fnukraine.pp.ua/'
 		]);
 	}
 
@@ -123,7 +123,6 @@ class TranslatorController extends BaseController
 					str_replace('":', '" =>', $data))));
 		$data[strlen($data) - 1] = "]";
 		$data = trim(str_replace('    ', "\t", $data));
-		echo $path . '/' . $fileName . '';
 		file_put_contents($path . '/' . $fileName, "<?php\n\nreturn " . $data . ";");
 	}
 
