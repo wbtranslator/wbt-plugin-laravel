@@ -10,32 +10,21 @@ class TranslatorController extends BaseController
 	private $localePath = '';
 	private $unprocessedLocales = [];
 	private $processedLocales   = [];
+	private $files              = [];
 
-	public function index()
+	private $client;
+	private $apiKey;
+
+	public function __construct()
 	{
-		if( ! $key = env('TRANSLATOR_API_KEY'))
-			return response()->json(['status' => false, 'message' => 'Token is absent!', 'code' => 401], 401);
-
-		try {
-			$client = new Client([
-				'base_uri' => 'http://192.168.88.149:8080/'
-			]);
-
-			$response = json_decode(($client->get('api/v2/project?api_key=' . $key))->getBody());
-			return response()->json(['status' => true, 'data' => [
-				'language' => $response->data->language,
-				'languages' => $response->data->languages
-			]], 200);
-		} catch(\GuzzleHttp\Exception\ConnectException $e) {
-			return response()->json(json_decode($e->getResponse()->getBody()->getContents()), 500);
-		}
+		$this->apiKey = env('TRANSLATOR_API_KEY');
+		$this->client = new Client([
+			'base_uri' => 'http://192.168.88.149:8080/'
+		]);
 	}
 
 	public function requestTranslate()
 	{
-		if( ! $key = env('TRANSLATOR_API_KEY'))
-			return response()->json(['status' => false, 'message' => 'Token is absent!', 'code' => 401], 401);
-
 		$this->localePath = base_path() . '/resources/lang/';
 		$this->loadLocales($this->localePath);
 		$this->prepareLocales($this->unprocessedLocales);
@@ -43,23 +32,19 @@ class TranslatorController extends BaseController
 		if(empty($this->processedLocales))
 			return response()->json(['status' => 'success'], 200);
 
-		$client = new Client([
-			'base_uri' => 'http://192.168.88.149:8080/'
-		]);
-
 		reset($this->processedLocales);
 		do {
 			try {
-				$client->post('/api/v2/project/tasks/create?api_key=' . $key, [
+				$this->client->post('/api/v2/project/tasks/create?api_key=' . $this->apiKey, [
 					'form_params' => [
 						'name' => key($this->processedLocales),
 						'value' => current($this->processedLocales)
 					]
 				]);
 			} catch(\GuzzleHttp\Exception\ConnectException $e) {
-				// return response()->json(json_decode($e->getResponse()->getBody()->getContents()), 500);
+				return response()->json(json_decode($e->getResponse()->getBody()->getContents()), 500);
 			} catch(\GuzzleHttp\Exception\ClientException $e) {
-				// return response()->json(json_decode($e->getResponse()->getBody()->getContents()), 500);
+				return response()->json(json_decode($e->getResponse()->getBody()->getContents()), 500);
 			}
 		} while(next($this->processedLocales));
 
@@ -68,34 +53,23 @@ class TranslatorController extends BaseController
 
 	public function receiveTranslate()
 	{
-		if( ! $key = env('TRANSLATOR_API_KEY'))
-			return response()->json(['status' => false, 'message' => 'Token is absent!', 'code' => 401], 401);
-
 		try {
-			$client = new Client([
-				'base_uri' => 'http://192.168.88.149:8080/'
-			]);
-
-			// ToDo: Get all languages
-			$projectResponse = json_decode(($client->get('api/v2/project?api_key=' . $key))->getBody());
+			$projectResponse = json_decode(($this->client->get('api/v2/project?api_key=' . $this->apiKey))->getBody());
 			if( ! $projectResponse->data->languages)
 				return response()->json(['status' => false, 'message' => 'Languages not found!', 'code' => 404], 404);
 
 			do {
-				current($projectResponse->data->languages)->code;
-				$response = json_decode($client->get('/api/v2/project/translations/' . current($projectResponse->data->languages)->id . '/?api_key=' . $key)
-					->getBody())->data->data;
-				do {
-					if('::' === substr(current($response)->name, 0, 2)) {
-						current($response)->name = str_replace('/' . \Config::get('app.locale') . '::', '/' . current($projectResponse->data->languages)->code . '::', current($response)->name);
-						$data = explode('::', current($response)->name);
-						$translate = isset(current($response)->translation->value) ? current($response)->translation->value : '';
+				$response = json_decode($this->client->get('/api/v2/project/translations/' . current($projectResponse->data->languages)->id . '/?limit=10000&api_key=' . $this->apiKey)->getBody())->data->data;
+				
+				$response = array_filter($response, function($v) {
+					return ! empty($v->translation);
+				});
 
-						dump($data);
-						dump($translate);
-						if(strlen($translate))
-							$this->saveTranslate($data, $translate);
-					}
+				do {
+					current($response)->name = str_replace('/' . \Config::get('app.locale') . '::', '/' . current($projectResponse->data->languages)->code . '::', current($response)->name);
+					$data = explode('::', current($response)->name);
+
+					$this->saveTranslate($data, current($response)->translation->value);
 				} while(next($response));
 			} while(next($projectResponse->data->languages));
 		} catch(\GuzzleHttp\Exception\ConnectException $e) {
@@ -105,9 +79,11 @@ class TranslatorController extends BaseController
 		} catch(\GuzzleHttp\Exception\ClientException $e) {
 			return response()->json(json_decode($e->getResponse()->getBody()->getContents()), 500);
 		}
+
+		return response()->json(['message' => 'success']);
 	}
 
-	private function saveTranslate(Array &$data, &$translate)
+	protected function saveTranslate(Array &$data, &$translate)
 	{
 		$path = $data[1];
 		$file = $data[2];
@@ -120,25 +96,25 @@ class TranslatorController extends BaseController
 		$this->createTranslateFile($file, $path, $data, $translate);
 	}
 
-	private function makeArray(&$array) {
+	protected function makeArray(&$array) {
 		if(count($array) > 1)
 			return [array_shift($array) => $this->makeArray($array)];
 		else
 			return $array[0];
 	}
 
-	private function createTranslateFile($fileName, $path, $array, $translate)
+	protected function createTranslateFile($fileName, $path, $array, $translate)
 	{
 		array_push($array, $translate);
-
 		if(file_exists($path . '/' . $fileName)) {
-			$data = require_once $path . '/' . $fileName;
-			if( ! is_array($data))
-				$data = [];
+			if( ! isset($this->files[$path . '/' . $fileName]))
+				$this->files[$path . '/' . $fileName] = require_once $path . '/' . $fileName;
 
-			$data = array_replace_recursive($data, $this->makeArray($array));
+			$data = array_replace_recursive($this->files[$path . '/' . $fileName], $this->makeArray($array));
 		} else
 			$data = $this->makeArray($array);
+
+		$this->files[$path . '/' . $fileName] = $data;
 
 		$data = json_encode($data, JSON_PRETTY_PRINT);
 		$data = str_replace("{\n", "[\n", 
@@ -146,8 +122,8 @@ class TranslatorController extends BaseController
 				str_replace("},\n", "],\n",
 					str_replace('":', '" =>', $data))));
 		$data[strlen($data) - 1] = "]";
-		$data = str_replace('    ', '	', $data);
-
+		$data = trim(str_replace('    ', "\t", $data));
+		echo $path . '/' . $fileName . '';
 		file_put_contents($path . '/' . $fileName, "<?php\n\nreturn " . $data . ";");
 	}
 
@@ -165,7 +141,7 @@ class TranslatorController extends BaseController
 		return $path;
 	}
 
-	private function loadLocales($path)
+	protected function loadLocales($path)
 	{
 		if( ! is_dir($path))
 			return false;
@@ -187,7 +163,7 @@ class TranslatorController extends BaseController
 		} while(next($files));
 	}
 
-	private function prepareLocales($unprocessedLocales, $path = '')
+	protected function prepareLocales($unprocessedLocales, $path = '')
 	{
 		if(empty($unprocessedLocales))
 			return false;
