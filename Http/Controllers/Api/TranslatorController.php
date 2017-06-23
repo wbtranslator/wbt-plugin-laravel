@@ -114,7 +114,7 @@ class TranslatorController extends BaseController
 		$this->createTranslateFile($file, $path, $data, $translate);
 	}
 
-	protected function makeArray(&$array) {
+	protected function makeArray(Array &$array) {
 		if(count($array) > 1)
 			return [array_shift($array) => $this->makeArray($array)];
 		else

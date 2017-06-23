@@ -13,7 +13,7 @@ class TranslatorServiceProvider extends ServiceProvider
 			'prefix' => '/translator/api', 
 			'namespace' => 'Translator\Http\Controllers\Api'], 
 		function($router) {
-			$router->get('/v1/process', 'TranslatorController@index');
+			$router->get('/v1/get/api', 'TranslatorController@getApi');
 			$router->get('/v1/translate/request', 'TranslatorController@requestTranslate');
 			$router->get('/v1/translate/receive', 'TranslatorController@receiveTranslate');
 		});
