@@ -16,14 +16,16 @@ class TranslatorController extends BaseController
 	private $apiKey;
 	private $baseLangDir;
 	private $baseLang;
+	private $basePath;
 
 	public function __construct()
 	{
+		$this->basePath = base_path();
 		$this->apiKey = env('TRANSLATOR_API_KEY');
 		$this->client = new Client([
 			'base_uri' => 'http://fnukraine.pp.ua/'
 		]);
-		$this->baseLangDir = base_path() . '/resources/lang/' . \Config::get('app.locale') . '/';
+		$this->baseLangDir = $this->basePath . '/resources/lang/' . \Config::get('app.locale') . '/';
 		$this->baseLang = \Config::get('app.locale');
 	}
 
@@ -57,9 +59,9 @@ class TranslatorController extends BaseController
 					]
 				]);
 			} catch(\GuzzleHttp\Exception\ConnectException $e) {
-				return response()->json(json_decode($e->getResponse()->getBody()->getContents()), 500);
+				\Log::error('TRANSLATOR ' . $e->getResponse()->getBody()->getContents());
 			} catch(\GuzzleHttp\Exception\ClientException $e) {
-				return response()->json(json_decode($e->getResponse()->getBody()->getContents()), 500);
+				\Log::warning('TRANSLATOR ' . $e->getResponse()->getBody()->getContents());
 			}
 		} while(next($this->processedLocales));
 
@@ -92,10 +94,10 @@ class TranslatorController extends BaseController
 			} while(next($projectResponse->data->languages));
 		} catch(\GuzzleHttp\Exception\ConnectException $e) {
 			if( ! $e->getCode())
-				return response()->json(['message' => 'Connection error'], 500);
-			return response()->json(json_decode($e->getResponse()->getBody()->getContents()), 500);
+				\Log::error('TRANSLATOR Connection error');
+			\Log::error('TRANSLATOR ' . $e->getResponse()->getBody()->getContents());
 		} catch(\GuzzleHttp\Exception\ClientException $e) {
-			return response()->json(json_decode($e->getResponse()->getBody()->getContents()), 500);
+			\Log::warning('TRANSLATOR ' . $e->getResponse()->getBody()->getContents());
 		}
 
 		return response()->json(['message' => 'success']);
@@ -147,7 +149,7 @@ class TranslatorController extends BaseController
 	private function createTranslatePath($unprocessedPath) 
 	{
 		$unprocessedPath = explode('/', $unprocessedPath);
-		$path = base_path() . '/resources';
+		$path = $this->basePath . '/resources';
 
 		do {
 			$path.=  '/' . current($unprocessedPath);
