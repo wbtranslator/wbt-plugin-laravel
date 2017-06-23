@@ -14,6 +14,8 @@ class TranslatorController extends BaseController
 
 	private $client;
 	private $apiKey;
+	private $baseLangDir;
+	private $baseLang;
 
 	public function __construct()
 	{
@@ -21,12 +23,25 @@ class TranslatorController extends BaseController
 		$this->client = new Client([
 			'base_uri' => 'http://fnukraine.pp.ua/'
 		]);
+		$this->baseLangDir = base_path() . '/resources/lang/' . \Config::get('app.locale') . '/';
+		$this->baseLang = \Config::get('app.locale');
+	}
+
+	public function getApi()
+	{
+		$auth = $this->client->post('/api/v1/auth/login', [
+			'form_params' => [
+				'email' => 'senchilovictor+1@gmail.com',
+				'password' => 'muaythai99'
+			]
+		]);
+
+		$auth = json_decode($auth->getBody())->token;
 	}
 
 	public function requestTranslate()
 	{
-		$this->localePath = base_path() . '/resources/lang/';
-		$this->loadLocales($this->localePath);
+		$this->loadLocales();
 		$this->prepareLocales($this->unprocessedLocales);
 
 		if(empty($this->processedLocales))
@@ -65,8 +80,11 @@ class TranslatorController extends BaseController
 					return ! empty($v->translation);
 				});
 
+				if( ! $response)
+					continue;
+
 				do {
-					current($response)->name = str_replace('/' . \Config::get('app.locale') . '::', '/' . current($projectResponse->data->languages)->code . '::', current($response)->name);
+					current($response)->name = str_replace('/' . $this->baseLang . '::', '/' . current($projectResponse->data->languages)->code . '::', current($response)->name);
 					$data = explode('::', current($response)->name);
 
 					$this->saveTranslate($data, current($response)->translation->value);
@@ -140,25 +158,24 @@ class TranslatorController extends BaseController
 		return $path;
 	}
 
-	protected function loadLocales($path)
+	protected function loadLocales()
 	{
-		if( ! is_dir($path))
+		if( ! is_dir($this->baseLangDir))
 			return false;
-		
-		if( ! $files = scandir($path))
+
+		if( ! $files = scandir($this->baseLangDir))
 			return null;
 
-		$_path = substr($path, strpos($path, 'lang'), -1);
+		$_path = substr($this->baseLangDir, strpos($this->baseLangDir, 'lang'), -1);
+
 		do {
 			if(current($files) === '.' || current($files) === '..')
 				continue;
 
-			if(is_dir($path . current($files))) {
-				if(current($files) !== \Config::get('app.locale'))
-					continue;
+			if(is_dir($this->baseLangDir . current($files)))
 				$this->loadLocales($path . current($files) . '/');
-			} else
-				$this->unprocessedLocales[$_path][current($files)] = require_once $path . current($files);
+			else
+				$this->unprocessedLocales[$_path][current($files)] = require_once $this->baseLangDir . current($files);
 		} while(next($files));
 	}
 
