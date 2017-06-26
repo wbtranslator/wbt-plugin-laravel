@@ -18,16 +18,29 @@ class TranslatorController extends BaseController
 	private $baseLang;
 	private $basePath;
 
-	public function __construct()
+	const REQUEST_SIZE = 100;
+	const RECEIVE_SIZE = 1000;
+
+	public function initTask()
 	{
 		$this->basePath = base_path();
 		$this->apiKey = env('TRANSLATOR_API_KEY');
 		$this->client = new Client([
-			// 'base_uri' => 'http://fnukraine.pp.ua/'
-			'base_uri' => 'http://192.168.88.149:8080/'
+			'base_uri' => 'http://fnukraine.pp.ua/'
 		]);
-		$this->baseLangDir = $this->basePath . '/resources/lang/' . \Config::get('app.locale') . '/';
-		$this->baseLang = \Config::get('app.locale');
+
+		try {
+			$response = $this->client->get('/api/v2/project?api_key=' . $this->apiKey);
+			$response = json_decode($response->getBody());
+			$this->baseLang = $response->data->language->code;
+			$this->baseLangDir = $this->basePath . '/resources/lang/' . $this->baseLang . '/';
+		} catch(\GuzzleHttp\Exception\ConnectException $e) {
+			\Log::error('TRANSLATOR ' . $e->getResponse()->getBody()->getContents());
+			die($e->getResponse()->getBody()->getContents());
+		} catch(\GuzzleHttp\Exception\ClientException $e) {
+			\Log::error('TRANSLATOR ' . $e->getResponse()->getBody()->getContents());
+			die($e->getResponse()->getBody()->getContents());
+		}
 	}
 
 	/**
@@ -36,32 +49,41 @@ class TranslatorController extends BaseController
 	 */
 	public function requestTranslate()
 	{
+		$this->initTask();
+
 		$this->loadLocales();
 		$this->prepareLocales($this->unprocessedLocales);
 
 		if(empty($this->processedLocales))
 			return response()->json(['status' => 'success'], 200);
 
-		$result = null;
-		reset($this->processedLocales);
-		do {
+		$this->processedLocales = array_chunk($this->processedLocales, self::REQUEST_SIZE, true);
+		$locales = [];
+
+		foreach($this->processedLocales as &$arrLocales) {
+			$pack = [];
+			foreach($arrLocales as $k => $locale) {
+				$pack[] = [
+					'name' => $k,
+					'value' => $locale
+				];
+			}
+			$locales[]['data'] = $pack;
+		}
+
+		foreach($locales as &$locales) {
 			try {
 				$result = $this->client->post('/api/v2/project/tasks/create?api_key=' . $this->apiKey, [
-					'form_params' => [
-						'name' => key($this->processedLocales),
-						'value' => current($this->processedLocales)
-					]
+					'form_params' => $locales
 				]);
 
 				$result = json_decode($result->getBody());
-				print_r($result);
 			} catch(\GuzzleHttp\Exception\ConnectException $e) {
 				\Log::error('TRANSLATOR ' . $e->getResponse()->getBody()->getContents());
 			} catch(\GuzzleHttp\Exception\ClientException $e) {
 				\Log::warning('TRANSLATOR ' . $e->getResponse()->getBody()->getContents());
 			}
-		} while(next($this->processedLocales));
-
+		}
 		return response()->json(['status' => 'success'], 200);
 	}
 
@@ -71,6 +93,8 @@ class TranslatorController extends BaseController
 	 */
 	public function receiveTranslate()
 	{
+		$this->initTask();
+
 		try {
 			$projectResponse = json_decode(($this->client->get('api/v2/project?api_key=' . $this->apiKey))->getBody());
 			if( ! $projectResponse->data->languages)
@@ -80,7 +104,7 @@ class TranslatorController extends BaseController
 				if(current($projectResponse->data->languages)->code === $this->baseLang)
 					continue;
 
-				$response = json_decode($this->client->get('/api/v2/project/translations/' . current($projectResponse->data->languages)->id . '?limit=1000&api_key=' . $this->apiKey)->getBody())->data->data;
+				$response = json_decode($this->client->get('/api/v2/project/translations/' . current($projectResponse->data->languages)->id . '?limit=' . self::RECEIVE_SIZE . '&api_key=' . $this->apiKey)->getBody())->data->data;
 
 				if( ! $response = array_filter($response, function($v) {
 					return ! empty($v->translation);
