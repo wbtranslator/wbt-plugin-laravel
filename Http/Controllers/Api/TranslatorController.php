@@ -23,24 +23,17 @@ class TranslatorController extends BaseController
 		$this->basePath = base_path();
 		$this->apiKey = env('TRANSLATOR_API_KEY');
 		$this->client = new Client([
-			'base_uri' => 'http://fnukraine.pp.ua/'
+			// 'base_uri' => 'http://fnukraine.pp.ua/'
+			'base_uri' => 'http://192.168.88.149:8080/'
 		]);
 		$this->baseLangDir = $this->basePath . '/resources/lang/' . \Config::get('app.locale') . '/';
 		$this->baseLang = \Config::get('app.locale');
 	}
 
-	public function getApi()
-	{
-		$auth = $this->client->post('/api/v1/auth/login', [
-			'form_params' => [
-				'email' => 'senchilovictor+1@gmail.com',
-				'password' => 'muaythai99'
-			]
-		]);
-
-		$auth = json_decode($auth->getBody())->token;
-	}
-
+	/**
+	 * @method GET
+	 * @url /translator/api/v1/translate/request
+	 */
 	public function requestTranslate()
 	{
 		$this->loadLocales();
@@ -49,15 +42,19 @@ class TranslatorController extends BaseController
 		if(empty($this->processedLocales))
 			return response()->json(['status' => 'success'], 200);
 
+		$result = null;
 		reset($this->processedLocales);
 		do {
 			try {
-				$this->client->post('/api/v2/project/tasks/create?api_key=' . $this->apiKey, [
+				$result = $this->client->post('/api/v2/project/tasks/create?api_key=' . $this->apiKey, [
 					'form_params' => [
 						'name' => key($this->processedLocales),
 						'value' => current($this->processedLocales)
 					]
 				]);
+
+				$result = json_decode($result->getBody());
+				print_r($result);
 			} catch(\GuzzleHttp\Exception\ConnectException $e) {
 				\Log::error('TRANSLATOR ' . $e->getResponse()->getBody()->getContents());
 			} catch(\GuzzleHttp\Exception\ClientException $e) {
@@ -68,6 +65,10 @@ class TranslatorController extends BaseController
 		return response()->json(['status' => 'success'], 200);
 	}
 
+	/**
+	 * @method GET
+	 * @url /translator/api/v1/translate/receive
+	 */
 	public function receiveTranslate()
 	{
 		try {
@@ -76,19 +77,20 @@ class TranslatorController extends BaseController
 				return response()->json(['status' => false, 'message' => 'Languages not found!', 'code' => 404], 404);
 
 			do {
-				$response = json_decode($this->client->get('/api/v2/project/translations/' . current($projectResponse->data->languages)->id . '/?limit=10000&api_key=' . $this->apiKey)->getBody())->data->data;
-				
-				$response = array_filter($response, function($v) {
-					return ! empty($v->translation);
-				});
+				if(current($projectResponse->data->languages)->code === $this->baseLang)
+					continue;
 
-				if( ! $response)
+				$response = json_decode($this->client->get('/api/v2/project/translations/' . current($projectResponse->data->languages)->id . '?limit=1000&api_key=' . $this->apiKey)->getBody())->data->data;
+
+				if( ! $response = array_filter($response, function($v) {
+					return ! empty($v->translation);
+				}))
 					continue;
 
 				do {
 					current($response)->name = str_replace('/' . $this->baseLang . '::', '/' . current($projectResponse->data->languages)->code . '::', current($response)->name);
 					$data = explode('::', current($response)->name);
-
+					
 					$this->saveTranslate($data, current($response)->translation->value);
 				} while(next($response));
 			} while(next($projectResponse->data->languages));
@@ -136,7 +138,7 @@ class TranslatorController extends BaseController
 
 		$this->files[$path . '/' . $fileName] = $data;
 
-		$data = json_encode($data, JSON_PRETTY_PRINT);
+		$data = json_encode($data, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE);
 		$data = str_replace("{\n", "[\n", 
 			str_replace("}\n", "]\n", 
 				str_replace("},\n", "],\n",
