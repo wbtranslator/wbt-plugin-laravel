@@ -4,24 +4,94 @@ namespace App\Translator\Http\Controllers\Api;
 
 use Illuminate\Routing\Controller as BaseController;
 use GuzzleHttp\Client;
+use GuzzleHttp\Exception;
+
+use Log;
 
 class TranslatorController extends BaseController
 {
-	private $localePath = '';
-	private $unprocessedLocales = [];
-	private $processedLocales   = [];
-	private $files              = [];
+    //const API_URL = 'http://fnukraine.pp.ua/api/v2/';
+    const API_URL = 'http://192.168.88.149:8080/api/v2/';
 
-	private $client;
-	private $apiKey;
-	private $baseLangDir;
-	private $baseLang;
-	private $basePath;
+    protected $localePath = '';
+    protected $unprocessedLocales = [];
+    protected $processedLocales   = [];
+    protected $files              = [];
+
+    protected $client;
+    protected $apiKey;
+    protected $baseLangDir;
+    protected $baseLang;
+    protected $languages;
 
 	const REQUEST_SIZE = 100;
 	const RECEIVE_SIZE = 1000;
 
-	protected function initTask()
+	protected function client()
+    {
+        if (null === $this->client) {
+            $this->client = new Client([
+                'base_uri' => self::API_URL
+            ]);
+        }
+        return $this->client;
+    }
+
+    protected function getApiKey()
+    {
+        if (null === $this->apiKey) {
+            $this->apiKey = env('TRANSLATOR_API_KEY');
+        }
+        return $this->apiKey;
+    }
+
+    protected function getBaseLangDir()
+    {
+        if (null === $this->baseLangDir) {
+            $this->baseLangDir = base_path() . '/resources/lang/' . $this->baseLang . '/';
+        }
+        return $this->baseLangDir;
+    }
+    
+    public function init()
+    {
+        if(!$this->getApiKey()) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'TRANSLATOR_API_KEY not exists'
+            ], 400);
+        }
+
+        try {
+            $response = $this->client()->get('project?api_key=' . $this->getApiKey());
+
+            if ($response->getBody()) {
+                $response = json_decode($response->getBody());
+
+                if (!empty($response->data)) {
+                    $this->baseLang = $response->data->language;
+                    $this->languages = $response->data->languages;
+                }
+            }
+        } catch(Exception\ConnectException $e) {
+            Log::error('TRANSLATOR: ' . $e->getResponse()->getBody()->getContents());
+
+            return response()->json([
+                'status' => 'error',
+                'message' => $e->getMessage()
+            ], 400);
+
+        } catch(Exception\ClientException $e) {
+            Log::error('TRANSLATOR: ' . $e->getResponse()->getBody()->getContents());
+
+            return response()->json([
+                'status' => 'error',
+                'message' => $e->getMessage()
+            ], 400);
+        }
+    }
+
+/*	protected function initTask()
 	{
 		$this->basePath = base_path();
 		if( ! $this->apiKey = env('TRANSLATOR_API_KEY')) {
@@ -45,13 +115,9 @@ class TranslatorController extends BaseController
 			\Log::error('TRANSLATOR ' . $e->getResponse()->getBody()->getContents());
 			die($e->getResponse()->getBody()->getContents());
 		}
-	}
+	}*/
 
-	/**
-	 * @method GET
-	 * @url /translator/api/export
-	 */
-	public function export()
+	/*public function export()
 	{
 		$this->initTask();
 
@@ -89,13 +155,9 @@ class TranslatorController extends BaseController
 			}
 		}
 		return response()->json(['status' => 'success'], 200);
-	}
+	}*/
 
-	/**
-	 * @method GET
-	 * @url /translator/api/import
-	 */
-	public function import()
+	/*public function import()
 	{
 		$this->initTask();
 
@@ -131,98 +193,6 @@ class TranslatorController extends BaseController
 		}
 
 		return response()->json(['message' => 'success']);
-	}
-
-	protected function saveTranslate(Array &$data, &$translate)
-	{
-		$path = $data[1];
-		$file = $data[2];
-
-		unset($data[0], $data[1], $data[2]);
-
-		$data = array_values($data);
-
-		$path = $this->createTranslatePath($path);
-		$this->createTranslateFile($file, $path, $data, $translate);
-	}
-
-	protected function makeArray(Array &$array) {
-		if(count($array) > 1)
-			return [array_shift($array) => $this->makeArray($array)];
-		else
-			return $array[0];
-	}
-
-	protected function createTranslateFile($fileName, $path, $array, $translate)
-	{
-		array_push($array, $translate);
-		if(file_exists($path . '/' . $fileName)) {
-			if( ! isset($this->files[$path . '/' . $fileName]))
-				$this->files[$path . '/' . $fileName] = require_once $path . '/' . $fileName;
-
-			$data = array_replace_recursive($this->files[$path . '/' . $fileName], $this->makeArray($array));
-		} else
-			$data = $this->makeArray($array);
-
-		$this->files[$path . '/' . $fileName] = $data;
-
-		$data = json_encode($data, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE);
-		$data = str_replace("{\n", "[\n", 
-			str_replace("}\n", "]\n", 
-				str_replace("},\n", "],\n",
-					str_replace('":', '" =>', $data))));
-		$data[strlen($data) - 1] = "]";
-		$data = trim(str_replace('    ', "\t", $data));
-		file_put_contents($path . '/' . $fileName, "<?php\n\nreturn " . $data . ";");
-	}
-
-	private function createTranslatePath($unprocessedPath) 
-	{
-		$unprocessedPath = explode('/', $unprocessedPath);
-		$path = $this->basePath . '/resources';
-
-		do {
-			$path.=  '/' . current($unprocessedPath);
-			if( ! is_dir($path))
-				mkdir($path);
-		} while(next($unprocessedPath));
-
-		return $path;
-	}
-
-	protected function loadLocales()
-	{
-		if( ! is_dir($this->baseLangDir))
-			return false;
-
-		if( ! $files = scandir($this->baseLangDir))
-			return null;
-
-		$_path = substr($this->baseLangDir, strpos($this->baseLangDir, 'lang'), -1);
-
-		do {
-			if(current($files) === '.' || current($files) === '..')
-				continue;
-
-			if(is_dir($this->baseLangDir . current($files)))
-				$this->loadLocales($path . current($files) . '/');
-			else
-				$this->unprocessedLocales[$_path][current($files)] = require_once $this->baseLangDir . current($files);
-		} while(next($files));
-	}
-
-	protected function prepareLocales($unprocessedLocales, $path = '')
-	{
-		if(empty($unprocessedLocales))
-			return false;
-
-		reset($unprocessedLocales);
-		do {
-			if(is_array(current($unprocessedLocales)))
-				$this->prepareLocales(current($unprocessedLocales), $path . '::' . key($unprocessedLocales));
-			else
-				$this->processedLocales[$path . '::' . key($unprocessedLocales)] = current($unprocessedLocales);
-		} while(next($unprocessedLocales));
-	}
+	}*/
 }
 

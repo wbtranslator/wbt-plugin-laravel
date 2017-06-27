@@ -9,15 +9,15 @@ $ chmod -R 775 lang/
 ## Put API KEY to .env file
 ### Example: TRANSLATOR_API_KEY=API_KEY
 
-## Add TranslatorServiceProvider to YOUR_PROJECT/config/app.php
+## Add TranslatorServiceProvider to YOUR_PROJECT/config/app.php in section 'providers'
 ```
-'providers' => Translator\Providers\TranslatorServiceProvider::class 
+App\Translator\Providers\TranslatorServiceProvider::class 
 ```
 
 # API
 ```	
-/translator/export
+/translator/api/export
 ```
 ```
-/translator/import
+/translator/api/import
 ```
