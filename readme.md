@@ -5,19 +5,26 @@
 $ chmod -R 775 ./resources/lang/
 ```
 
-# Get API KEY
-## Put API KEY to .env file
-### Example: TRANSLATOR_API_KEY=API_KEY
+### Copy plugin folder to YOUR_PROJECT/app 
 
 ## Add TranslatorServiceProvider to YOUR_PROJECT/config/app.php in section 'providers'
 ```
 App\Translator\Providers\TranslatorServiceProvider::class 
 ```
+## Get API KEY
+Put API KEY to .env file
 
-# API
+Example: TRANSLATOR_API_KEY=API_KEY
+
+## Use web interfase
 ```	
-/translator/api/export
+http://PROJECT_URL/translator
+```
+
+## API methods
+```	
+http://PROJECT_URL/translator/api/export
 ```
 ```
-/translator/api/import
+http://PROJECT_URL/translator/api/import
 ```
