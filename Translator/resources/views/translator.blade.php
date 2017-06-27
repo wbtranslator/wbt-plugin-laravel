@@ -1,12 +1,10 @@
 @extends ('layouts/translator-main')
 
 @section('content')
-<form type="post">
-	<fieldset>
+	<form type="get">
 		<button type="submit" name="action" value="export">Export</button>
 		<button type="submit" name="action" value="import">Import</button>
-	</fieldset>
-</form>
+	</form>
 @isset ($exported['message'])
 	{{ $exported['message'][0] }}
 @endisset

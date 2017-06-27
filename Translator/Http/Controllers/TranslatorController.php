@@ -33,6 +33,7 @@ class TranslatorController extends BaseController
 		];
 
 		$action = $request->input('action');
+
 		switch($action) {
 			case 'import':
 				$response = $this->client()->get('import');
