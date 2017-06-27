@@ -6,7 +6,7 @@
 		<button type="submit" name="action" value="import">Import</button>
 	</form>
 @isset ($exported['message'])
-	{{ $exported['message'][0] }}
+	<p>{{ $exported['message'][0] }}</p>
 @endisset
 @isset ($imported['message'])
 	<ul>
