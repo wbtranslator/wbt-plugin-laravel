@@ -1,6 +1,6 @@
 <?php
 
-namespace Translator\Providers;
+namespace App\Translator\Providers;
 
 use Illuminate\Support\ServiceProvider;
 use View;
@@ -11,12 +11,13 @@ class TranslatorServiceProvider extends ServiceProvider
 	{
 		$this->app['router']->group([
 			'prefix' => '/translator/api', 
-			'namespace' => 'Translator\Http\Controllers\Api'], 
+			'namespace' => 'App\Translator\Http\Controllers\Api'], 
 		function($router) {
-			$router->get('/v1/translate/request', 'TranslatorController@requestTranslate');
-			$router->get('/v1/translate/receive', 'TranslatorController@receiveTranslate');
+			$router->get('/export', 'TranslatorController@export');
+			$router->get('/import', 'TranslatorController@import');
 		});
 	}
 
 	public function register(){}
 }
+

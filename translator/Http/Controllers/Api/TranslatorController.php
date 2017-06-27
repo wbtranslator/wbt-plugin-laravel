@@ -1,6 +1,6 @@
 <?php
 
-namespace Translator\Http\Controllers\Api;
+namespace App\Translator\Http\Controllers\Api;
 
 use Illuminate\Routing\Controller as BaseController;
 use GuzzleHttp\Client;
@@ -21,14 +21,18 @@ class TranslatorController extends BaseController
 	const REQUEST_SIZE = 100;
 	const RECEIVE_SIZE = 1000;
 
-	public function initTask()
+	protected function initTask()
 	{
 		$this->basePath = base_path();
-		$this->apiKey = env('TRANSLATOR_API_KEY');
+		if( ! $this->apiKey = env('TRANSLATOR_API_KEY')) {
+			\Log::error('TRANSLATOR TRANSLATOR_API_KEY not exists');
+			die('TRANSLATOR_API_KEY not exists');
+		}
+
 		$this->client = new Client([
 			'base_uri' => 'http://fnukraine.pp.ua/'
 		]);
-
+		
 		try {
 			$response = $this->client->get('/api/v2/project?api_key=' . $this->apiKey);
 			$response = json_decode($response->getBody());
@@ -45,9 +49,9 @@ class TranslatorController extends BaseController
 
 	/**
 	 * @method GET
-	 * @url /translator/api/v1/translate/request
+	 * @url /translator/api/export
 	 */
-	public function requestTranslate()
+	public function export()
 	{
 		$this->initTask();
 
@@ -89,9 +93,9 @@ class TranslatorController extends BaseController
 
 	/**
 	 * @method GET
-	 * @url /translator/api/v1/translate/receive
+	 * @url /translator/api/import
 	 */
-	public function receiveTranslate()
+	public function import()
 	{
 		$this->initTask();
 
@@ -221,3 +225,4 @@ class TranslatorController extends BaseController
 		} while(next($unprocessedLocales));
 	}
 }
+
