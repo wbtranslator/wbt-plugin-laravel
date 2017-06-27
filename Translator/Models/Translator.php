@@ -50,8 +50,8 @@ class Translator
     private function createTranslatePath($unprocessedPath)
     {
         $unprocessedPath = explode('/', $unprocessedPath);
-        $path = $this->basePath . '/resources';
 
+        $path = $this->basePath . '/resources';
         do {
             $path.=  '/' . current($unprocessedPath);
             if( ! is_dir($path))
@@ -61,15 +61,15 @@ class Translator
         return $path;
     }
 
-    protected function loadLocales()
+    protected function loadLocales($path)
     {
-        if( ! is_dir($this->baseLangDir))
+        if( ! is_dir($path))
             return false;
 
-        if( ! $files = scandir($this->baseLangDir))
+        if( ! $files = scandir($path))
             return null;
 
-        $_path = substr($this->baseLangDir, strpos($this->baseLangDir, 'lang'), -1);
+        $_path = substr($path, strpos($path, 'lang'), -1);
 
         do {
             if(current($files) === '.' || current($files) === '..')
@@ -78,7 +78,7 @@ class Translator
             if(is_dir($this->baseLangDir . current($files)))
                 $this->loadLocales($path . current($files) . '/');
             else
-                $this->unprocessedLocales[$_path][current($files)] = require_once $this->baseLangDir . current($files);
+                $this->unprocessedLocales[$_path][current($files)] = require_once $path . current($files);
         } while(next($files));
     }
 

@@ -72,6 +72,14 @@ class TranslatorController extends BaseController
                     $this->baseLang = $response->data->language;
                     $this->languages = $response->data->languages;
                 }
+
+                return response()->json([
+                    'status' => 'success',
+                    'message' => [
+                        'base_lang' => $this->baseLang,
+                        'languages' => $this->languages,
+                    ]
+                ], 400);
             }
         } catch(Exception\ConnectException $e) {
             Log::error('TRANSLATOR: ' . $e->getResponse()->getBody()->getContents());
@@ -100,20 +108,25 @@ class TranslatorController extends BaseController
 		}
 
 		$this->client = new Client([
-			'base_uri' => 'http://fnukraine.pp.ua/'
+			// 'base_uri' => 'http://fnukraine.pp.ua/',
+			'base_uri' => 'http://192.168.88.149:8080/',
 		]);
-		
+
 		try {
 			$response = $this->client->get('/api/v2/project?api_key=' . $this->apiKey);
 			$response = json_decode($response->getBody());
 			$this->baseLang = $response->data->language->code;
 			$this->baseLangDir = $this->basePath . '/resources/lang/' . $this->baseLang . '/';
+
+			if( ! is_dir($this->baseLangDir)) {
+				die('Default language dir `' . $this->baseLangDir . '` not exists');
+			}
 		} catch(\GuzzleHttp\Exception\ConnectException $e) {
-			\Log::error('TRANSLATOR ' . $e->getResponse()->getBody()->getContents());
-			die($e->getResponse()->getBody()->getContents());
+			\Log::error('TRANSLATOR ' . $e->getMessage());
+			die($e->getMessage());
 		} catch(\GuzzleHttp\Exception\ClientException $e) {
-			\Log::error('TRANSLATOR ' . $e->getResponse()->getBody()->getContents());
-			die($e->getResponse()->getBody()->getContents());
+			\Log::error('TRANSLATOR ' . $e->getMessage());
+			die($e->getMessage());
 		}
 	}*/
 
@@ -121,7 +134,7 @@ class TranslatorController extends BaseController
 	{
 		$this->initTask();
 
-		$this->loadLocales();
+		$this->loadLocales($this->baseLangDir);
 		$this->prepareLocales($this->unprocessedLocales);
 
 		if(empty($this->processedLocales))
@@ -178,7 +191,7 @@ class TranslatorController extends BaseController
 					continue;
 
 				do {
-					current($response)->name = str_replace('/' . $this->baseLang . '::', '/' . current($projectResponse->data->languages)->code . '::', current($response)->name);
+					current($response)->name = preg_replace('/\/(' . $this->baseLang . ')/', '/' . current($projectResponse->data->languages)->code, current($response)->name);
 					$data = explode('::', current($response)->name);
 					
 					$this->saveTranslate($data, current($response)->translation->value);
