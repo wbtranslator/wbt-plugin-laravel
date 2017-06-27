@@ -2,7 +2,7 @@
 
 ### Set folders permissions with write access from server.
 ```sh
-$ chmod -R 775 lang/
+$ chmod -R 775 ./resources/lang/
 ```
 
 # Get API KEY

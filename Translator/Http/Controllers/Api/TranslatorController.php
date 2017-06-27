@@ -4,7 +4,7 @@ namespace App\Translator\Http\Controllers\Api;
 
 use Illuminate\Routing\Controller as BaseController;
 use GuzzleHttp\Client;
-use GuzzleHttp\Exception;
+use Exception;
 use App\Translator\Models\Translator;
 use Log;
 
@@ -12,11 +12,6 @@ class TranslatorController extends BaseController
 {
     //const API_URL = 'http://fnukraine.pp.ua/api/v2/';
     const API_URL = 'http://192.168.88.149:8080/api/v2/';
-
-    protected $localePath = '';
-    protected $unprocessedLocales = [];
-    protected $processedLocales   = [];
-    protected $files              = [];
 
     protected $model;
     protected $client;
@@ -83,11 +78,7 @@ class TranslatorController extends BaseController
                     'languages' => $this->model->getLanguages(),
                 ]);
             }
-        } catch(Exception\ConnectException $e) {
-            Log::error('TRANSLATOR: ' . $e->getResponse()->getBody()->getContents());
-            return $this->responseError($e->getMessage());
-
-        } catch(Exception\ClientException $e) {
+        } catch(Exception $e) {
             Log::error('TRANSLATOR: ' . $e->getResponse()->getBody()->getContents());
             return $this->responseError($e->getMessage());
         }
@@ -123,56 +114,63 @@ class TranslatorController extends BaseController
 					'form_params' => $locales
 				]);
 
-				if ($result->getBody()) {
-                    $result = json_decode($result->getBody());
-                    return $this->responseSuccess($result->message);
-                }
-			} catch(Exception\ConnectException $e) {
-				Log::error('TRANSLATOR: ' . $e->getResponse()->getBody()->getContents());
-                return $this->responseError($e->getMessage());
-			} catch(Exception\ClientException $e) {
-				Log::warning('TRANSLATOR: ' . $e->getResponse()->getBody()->getContents());
+                $result = json_decode($result->getBody());
+                return $this->responseSuccess($result->message);
+			}
+			catch(Exception $e) {
+				Log::error('TRANSLATOR: ' . $e->getMessage());
                 return $this->responseError($e->getMessage());
 			}
 		}
 	}
 
-	/*public function import()
-	{
-		$this->initTask();
+    public function import()
+    {
+        $this->init();
 
-		try {
-			$projectResponse = json_decode(($this->client->get('api/v2/project?api_key=' . $this->apiKey))->getBody());
-			if( ! $projectResponse->data->languages)
-				return response()->json(['status' => false, 'message' => 'Languages not found!', 'code' => 404], 404);
+        $baseLang = $this->model->getBaseLang();
+        $languages = $this->model->getLanguages();
 
-			do {
-				if(current($projectResponse->data->languages)->code === $this->baseLang)
-					continue;
+        $result =[];
 
-				$response = json_decode($this->client->get('/api/v2/project/translations/' . current($projectResponse->data->languages)->id . '?limit=' . self::RECEIVE_SIZE . '&api_key=' . $this->apiKey)->getBody())->data->data;
+        try {
+            foreach ($languages as $language) {
+                if($language->id === $baseLang->id) {
+                    continue;
+                }
 
-				if( ! $response = array_filter($response, function($v) {
-					return ! empty($v->translation);
-				}))
-					continue;
+                $url = 'project/translations/' . $language->id . '?limit=' . self::RECEIVE_SIZE . '&api_key=' . $this->getApiKey();
+                $response = $this->client()->get($url);
+                $body = $response->getBody();
 
-				do {
-					current($response)->name = preg_replace('/\/(' . $this->baseLang . ')/', '/' . current($projectResponse->data->languages)->code, current($response)->name);
-					$data = explode('::', current($response)->name);
-					
-					$this->saveTranslate($data, current($response)->translation->value);
-				} while(next($response));
-			} while(next($projectResponse->data->languages));
-		} catch(\GuzzleHttp\Exception\ConnectException $e) {
-			if( ! $e->getCode())
-				\Log::error('TRANSLATOR Connection error');
-			\Log::error('TRANSLATOR ' . $e->getResponse()->getBody()->getContents());
-		} catch(\GuzzleHttp\Exception\ClientException $e) {
-			\Log::warning('TRANSLATOR ' . $e->getResponse()->getBody()->getContents());
-		}
+                if ($body) {
+                    $body = json_decode($body);
 
-		return response()->json(['message' => 'success']);
-	}*/
+                    if (!empty($body->data->data)) {
+                        $data = $body->data->data;
+
+                        if (!$data = array_filter($data, function($v) {
+                            return !empty($v->translation);
+                        })) {
+                            continue;
+                        }
+
+                        $result[$language->code] = 0;
+
+                        foreach ($data as $d) {
+                            $d->name = preg_replace('/\/(' . $baseLang->code . ')/', '/' . $language->code, $d->name);
+                            $this->model->saveTranslate($d->name, $d->translation->value);
+                            $result[$language->code]++;
+                        }
+                    }
+                }
+            }
+        } catch(Exception $e) {
+            Log::error('TRANSLATOR: ' . $e->getMessage());
+            return $this->responseError($e->getMessage());
+        }
+
+        return $this->responseSuccess($result);
+    }
 }
 

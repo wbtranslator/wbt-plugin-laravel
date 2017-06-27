@@ -6,10 +6,16 @@ class Translator
 {
     protected $unprocessedLocales = [];
     protected $processedLocales   = [];
+    protected $files              = [];
 
     protected $baseLangDir;
     protected $baseLang;
     protected $languages;
+
+    public function getBasePath()
+    {
+        return base_path();
+    }
 
     public function setBaseLang($lang)
     {
@@ -35,7 +41,7 @@ class Translator
     {
         if (null === $this->baseLangDir) {
             $baseLang = $this->getBaseLang();
-            $this->baseLangDir = base_path() . '/resources/lang/' . $baseLang->code . '/';
+            $this->baseLangDir = $this->getBasePath() . '/resources/lang/' . $baseLang->code . '/';
         }
         return $this->baseLangDir;
     }
@@ -95,8 +101,10 @@ class Translator
         } while(next($unprocessedLocales));
     }
 
-    public function saveTranslate(Array &$data, &$translate)
+    public function saveTranslate($name, &$translate)
     {
+        $data = explode('::', $name);
+
         $path = $data[1];
         $file = $data[2];
 
@@ -108,48 +116,63 @@ class Translator
         $this->createTranslateFile($file, $path, $data, $translate);
     }
 
-    public function makeArray(Array &$array)
+    public function createTranslatePath($unprocessedPath)
     {
-        if(count($array) > 1)
-            return [array_shift($array) => $this->makeArray($array)];
-        else
-            return $array[0];
+        $unprocessedPath = explode('/', $unprocessedPath);
+
+        $path = $this->getBasePath() . '/resources';
+
+        if (!is_writable($path . '/lang')) {
+            throw new \Exception('Folder "' . $path . '" must be writable!');
+        }
+
+        do {
+            $path .=  '/' . current($unprocessedPath);
+            if(!is_dir($path)) {
+                mkdir($path);
+            }
+        } while(next($unprocessedPath));
+
+        return $path;
     }
 
     public function createTranslateFile($fileName, $path, $array, $translate)
     {
         array_push($array, $translate);
-        if(file_exists($path . '/' . $fileName)) {
-            if( ! isset($this->files[$path . '/' . $fileName]))
+
+        if (file_exists($path . '/' . $fileName)) {
+            if (!isset($this->files[$path . '/' . $fileName])) {
                 $this->files[$path . '/' . $fileName] = require_once $path . '/' . $fileName;
+            }
 
             $data = array_replace_recursive($this->files[$path . '/' . $fileName], $this->makeArray($array));
-        } else
+        } else {
             $data = $this->makeArray($array);
+        }
 
         $this->files[$path . '/' . $fileName] = $data;
 
         $data = json_encode($data, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE);
         $data = str_replace("{\n", "[\n",
-            str_replace("}\n", "]\n",
+                str_replace("}\n", "]\n",
                 str_replace("},\n", "],\n",
-                    str_replace('":', '" =>', $data))));
+                str_replace('":', '" =>', $data))));
         $data[strlen($data) - 1] = "]";
         $data = trim(str_replace('    ', "\t", $data));
+
+        if (!is_writable($path)) {
+            throw new \Exception('Folder "' . $path . '" must be writable!');
+        }
+
         file_put_contents($path . '/' . $fileName, "<?php\n\nreturn " . $data . ";");
     }
 
-    public function createTranslatePath($unprocessedPath)
+    public function makeArray(Array &$array)
     {
-        $unprocessedPath = explode('/', $unprocessedPath);
-
-        $path = $this->basePath . '/resources';
-        do {
-            $path.=  '/' . current($unprocessedPath);
-            if( ! is_dir($path))
-                mkdir($path);
-        } while(next($unprocessedPath));
-
-        return $path;
+        if (count($array) > 1) {
+            return [array_shift($array) => $this->makeArray($array)];
+        } else {
+            return $array[0];
+        }
     }
 }
