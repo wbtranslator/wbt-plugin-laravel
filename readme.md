@@ -1,13 +1,19 @@
-# Deploy translator plugin to laravel root
+# WEB Translator Laravel Plugin
+
+### Download plugin
+https://bitbucket.org/futurenetukraine/fwt-plugin-laravel/get/3ca7b726abe8.zip
+
+### Copy plugin folder Translator to PROJECT_PATH/app 
+```
+$ cp Translator PROJECT_PATH/app/
+```
 
 ### Set folders permissions with write access from server.
 ```sh
 $ chmod -R 775 ./resources/lang/
 ```
 
-### Copy plugin folder to YOUR_PROJECT/app 
-
-## Add TranslatorServiceProvider to YOUR_PROJECT/config/app.php in section 'providers'
+## Add TranslatorServiceProvider to PROJECT_PATH/config/app.php in section 'providers'
 ```
 App\Translator\Providers\TranslatorServiceProvider::class 
 ```
