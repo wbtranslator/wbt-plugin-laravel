@@ -13,9 +13,17 @@ class TranslatorServiceProvider extends ServiceProvider
 			'prefix' => '/translator/api', 
 			'namespace' => 'App\Translator\Http\Controllers\Api'], 
 		function($router) {
-            $router->get('/init', 'TranslatorController@init');
+			$router->get('/init', 'TranslatorController@init');
 			$router->get('/export', 'TranslatorController@export');
 			$router->get('/import', 'TranslatorController@import');
+		});
+
+		$this->app['router']->group([
+			'prefix' => '/translator', 
+			'namespace' => 'App\Translator\Http\Controllers'], 
+		function($router) {
+			View::addLocation(app_path().'/translator/resources/views');
+			$router->get('/init', 'TranslatorController@init');
 		});
 	}
 
