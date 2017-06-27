@@ -10,8 +10,7 @@ use Log;
 
 class TranslatorController extends BaseController
 {
-    //const API_URL = 'http://fnukraine.pp.ua/api/v2/';
-    const API_URL = 'http://192.168.88.149:8080/api/v2/';
+    const API_URL = 'http://fnukraine.pp.ua/api/v2/';
 
     protected $model;
     protected $client;
@@ -69,8 +68,12 @@ class TranslatorController extends BaseController
                 $response = json_decode($response->getBody());
 
                 if (!empty($response->data)) {
-                    $this->model->setBaseLang($response->data->language);
-                    $this->model->setLanguages($response->data->languages);
+                    if (isset($response->data->language)) {
+                        $this->model->setBaseLang($response->data->language);
+                    }
+                    if (isset($response->data->languages)) {
+                        $this->model->setLanguages($response->data->languages);
+                    }
                 }
 
                 return $this->responseSuccess([
