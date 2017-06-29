@@ -11,5 +11,5 @@ Route::group(['prefix' => 'translator'], function () {
         Route::get('import', 'TranslatorApiController@import');
     });
 
-    Route::get('/', 'TranslatorApiController@index');
+    Route::get('/', 'TranslatorController@index');
 });

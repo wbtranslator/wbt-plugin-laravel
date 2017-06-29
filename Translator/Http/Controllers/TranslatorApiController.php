@@ -9,11 +9,11 @@ use Log;
 
 class TranslatorApiController extends BaseController
 {
-    protected $model;
+    protected $translator;
 
     public function __construct()
     {
-        $this->model = new Translator(env('TRANSLATOR_API_KEY'));
+        $this->translator = new Translator(env('TRANSLATOR_API_KEY'));
     }
 
     protected function responseError($messsage = null, $code = 400)
@@ -35,7 +35,7 @@ class TranslatorApiController extends BaseController
     public function init()
     {
         try {
-            $data = $this->model->init();
+            $data = $this->translator->init();
             return $this->responseSuccess($data);
         } catch(Exception $e) {
             Log::error('TRANSLATOR: ' . $e->getResponse()->getBody()->getContents() . '; Exception: ' . $e->getMessage());
@@ -46,8 +46,8 @@ class TranslatorApiController extends BaseController
 	public function export()
 	{
         try {
-	        $result = $this->model->export();
-            return $this->responseSuccess('Export ' . $result . ' tasks.');
+	        $result = $this->translator->export();
+            return $this->responseSuccess($result);
         }
         catch(Exception $e) {
             Log::error('TRANSLATOR: ' . $e->getMessage());
@@ -58,7 +58,7 @@ class TranslatorApiController extends BaseController
     public function import()
     {
         try {
-            $result = $this->model->import();
+            $result = $this->translator->import();
             return $this->responseSuccess($result);
         }
         catch(Exception $e) {
