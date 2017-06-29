@@ -11,7 +11,7 @@ class Translator
     const API_URL = 'http://192.168.88.149:8080/api/v2/';
     const BASE_LANG_PATH = '/resources/lang/';
 
-    const REQUEST_SIZE = 2;
+    const REQUEST_SIZE = 100;
     const RECEIVE_SIZE = 1000;
 
     protected $client;
@@ -35,26 +35,26 @@ class Translator
         $this->setApiKey($apiKey);
     }
 
-    protected function setClient($client = null)
+    public function setClient($client = null)
     {
         $this->client = $client;
 
         return $this;
     }
 
-    protected function getClient()
+    public function getClient()
     {
         return $this->client;
     }
 
-    protected function setApiKey($apiKey)
+    public function setApiKey($apiKey)
     {
         $this->apiKey = $apiKey;
 
         return $this;
     }
 
-    protected function getApiKey()
+    public function getApiKey()
     {
         if (!$this->apiKey) {
             throw new TranslatorException('TRANSLATOR_API_KEY not exists!');
@@ -135,14 +135,66 @@ class Translator
             }
             $locales[]['data'] = $pack;
         }
-        
+
+        $result = 0;
+
         if (!empty($locales)) {
             foreach ($locales as $locale) {
-                $this->getClient()->post($url, [
+                $res = $this->getClient()->post($url, [
                     'form_params' => $locale
                 ]);
+                $res = json_decode($res->getBody());
+                if (!empty($res->data->count)) {
+                    $result += $res->data->count;
+                }
             }
         }
+
+        return $result;
+    }
+
+    public function import()
+    {
+        $this->init();
+
+        $baseLang = $this->getBaseLang();
+        $languages = $this->getLanguages();
+
+        $result =[];
+
+        foreach ($languages as $language) {
+            if($language->id === $baseLang->id) {
+                continue;
+            }
+
+            $url = 'project/translations/' . $language->id . '?limit=' . self::RECEIVE_SIZE . '&api_key=' . $this->getApiKey();
+            $response = $this->getClient()->get($url);
+            $body = $response->getBody();
+
+            if ($body) {
+                $body = json_decode($body);
+
+                if (!empty($body->data->data)) {
+                    $data = $body->data->data;
+
+                    if (!$data = array_filter($data, function($v) {
+                        return !empty($v->translation);
+                    })) {
+                        continue;
+                    }
+
+                    $result[$language->code] = 0;
+
+                    foreach ($data as $d) {
+                        $d->name = preg_replace('/\/(' . $baseLang->code . ')/', '/' . $language->code, $d->name);
+                        $this->saveTranslate($d->name, $d->translation->value);
+                        $result[$language->code]++;
+                    }
+                }
+            }
+        }
+
+        return $result;
     }
 
     public function getBaseLangDir()
@@ -159,7 +211,7 @@ class Translator
         return $this->baseLangDir;
     }
 
-    public function locales($prepare = true)
+    protected function locales($prepare = true)
     {
         $path = $this->getBaseLangDir();
         $this->loadLocales($path);
@@ -214,7 +266,7 @@ class Translator
         } while(next($unprocessedLocales));
     }
 
-    public function saveTranslate($name, &$translate)
+    protected function saveTranslate($name, &$translate)
     {
         $data = explode('::', $name);
 
@@ -229,7 +281,7 @@ class Translator
         $this->createTranslateFile($file, $path, $data, $translate);
     }
 
-    public function createTranslatePath($unprocessedPath)
+    protected function createTranslatePath($unprocessedPath)
     {
         $unprocessedPath = explode('/', $unprocessedPath);
 
@@ -249,7 +301,7 @@ class Translator
         return $path;
     }
 
-    public function createTranslateFile($fileName, $path, $array, $translate)
+    protected function createTranslateFile($fileName, $path, $array, $translate)
     {
         array_push($array, $translate);
 
@@ -280,7 +332,7 @@ class Translator
         file_put_contents($path . '/' . $fileName, "<?php\n\nreturn " . $data . ";");
     }
 
-    public function makeArray(Array &$array)
+    protected function makeArray(Array &$array)
     {
         if (count($array) > 1) {
             return [array_shift($array) => $this->makeArray($array)];
