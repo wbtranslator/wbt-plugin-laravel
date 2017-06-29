@@ -7,8 +7,7 @@ use App\Translator\Exceptions\TranslatorException;
 
 class Translator
 {
-    //const API_URL = 'http://fnukraine.pp.ua/api/v2/';
-    const API_URL = 'http://192.168.88.149:8080/api/v2/';
+    const API_URL = 'http://fnukraine.pp.ua/api/v2/';
     const BASE_LANG_PATH = '/resources/lang/';
 
     const REQUEST_SIZE = 100;

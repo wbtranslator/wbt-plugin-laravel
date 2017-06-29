@@ -17,20 +17,25 @@ class TranslatorController extends BaseController
 	{
 		$viewVars = [
 			'exported' => null,
-			'imported' => [],
+			'imported' => null,
 		];
 
-        $translator = new Translator(env('TRANSLATOR_API_KEY'));
+		try {
+            $translator = new Translator(env('TRANSLATOR_API_KEY'));
 
-		switch($request->input('action')) {
-			case 'import':
-				$viewVars['imported'] = $translator->import();
-				break;
+            switch ($request->input('action')) {
+                case 'import':
+                    $viewVars['imported'] = $translator->import();
+                    break;
 
-			case 'export':
-				$viewVars['exported'] = $translator->export();
-				break;
-		}
+                case 'export':
+                    $viewVars['exported'] = $translator->export();
+                    break;
+            }
+        }
+        catch(\Exception $e) {
+            return view('translator', ['exception' => $e]);
+        }
 
         return view('translator', $viewVars);
 	}
