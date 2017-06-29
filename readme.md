@@ -1,7 +1,7 @@
 # WEB Translator Laravel Plugin
 
 ### Download plugin
-https://bitbucket.org/futurenetukraine/fwt-plugin-laravel/get/3ca7b726abe8.zip
+https://bitbucket.org/futurenetukraine/fwt-plugin-laravel/get/1002cc4ed576.zip
 
 ### Copy plugin folder Translator to PROJECT_PATH/app 
 ```

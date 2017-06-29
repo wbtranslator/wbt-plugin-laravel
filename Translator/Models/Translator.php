@@ -2,8 +2,21 @@
 
 namespace App\Translator\Models;
 
+use GuzzleHttp\Client as HttpClient;
+use App\Translator\Exceptions\TranslatorException;
+
 class Translator
 {
+    //const API_URL = 'http://fnukraine.pp.ua/api/v2/';
+    const API_URL = 'http://192.168.88.149:8080/api/v2/';
+    const BASE_LANG_PATH = '/resources/lang/';
+
+    const REQUEST_SIZE = 2;
+    const RECEIVE_SIZE = 1000;
+
+    protected $client;
+    protected $apiKey;
+
     protected $unprocessedLocales = [];
     protected $processedLocales   = [];
     protected $files              = [];
@@ -11,6 +24,44 @@ class Translator
     protected $baseLangDir;
     protected $baseLang;
     protected $languages;
+
+    public function __construct($apiKey = null)
+    {
+        $client = new HttpClient([
+            'base_uri' => self::API_URL
+        ]);
+
+        $this->setClient($client);
+        $this->setApiKey($apiKey);
+    }
+
+    protected function setClient($client = null)
+    {
+        $this->client = $client;
+
+        return $this;
+    }
+
+    protected function getClient()
+    {
+        return $this->client;
+    }
+
+    protected function setApiKey($apiKey)
+    {
+        $this->apiKey = $apiKey;
+
+        return $this;
+    }
+
+    protected function getApiKey()
+    {
+        if (!$this->apiKey) {
+            throw new TranslatorException('TRANSLATOR_API_KEY not exists!');
+        }
+
+        return $this->apiKey;
+    }
 
     public function getBasePath()
     {
@@ -20,11 +71,15 @@ class Translator
     public function setBaseLang($lang)
     {
         $this->baseLang = $lang;
+
+        return $this;
     }
 
     public function setLanguages($languages)
     {
         $this->languages = $languages;
+
+        return $this;
     }
 
     public function getBaseLang()
@@ -37,11 +92,69 @@ class Translator
         return $this->languages;
     }
 
+    public function init()
+    {
+        $response = $this->getClient()->get('project?api_key=' . $this->getApiKey());
+
+        if ($response->getBody()) {
+            $response = json_decode($response->getBody());
+
+            if (!empty($response->data)) {
+                if (isset($response->data->language)) {
+                    $this->setBaseLang($response->data->language);
+                }
+                if (isset($response->data->languages)) {
+                    $this->setLanguages($response->data->languages);
+                }
+            }
+        }
+
+        return [
+            'base_lang' => $this->getBaseLang(),
+            'languages' => $this->getLanguages(),
+        ];
+    }
+
+    public function export()
+    {
+        $this->init();
+        $this->locales();
+
+        $url = 'project/tasks/create?api_key=' . $this->getApiKey();
+
+        $processedLocales = array_chunk($this->processedLocales, self::REQUEST_SIZE, true);
+        $locales = [];
+
+        foreach($processedLocales as $arrLocales) {
+            $pack = [];
+            foreach($arrLocales as $k => $v) {
+                $pack[] = [
+                    'name' => $k,
+                    'value' => $v
+                ];
+            }
+            $locales[]['data'] = $pack;
+        }
+        
+        if (!empty($locales)) {
+            foreach ($locales as $locale) {
+                $this->getClient()->post($url, [
+                    'form_params' => $locale
+                ]);
+            }
+        }
+    }
+
     public function getBaseLangDir()
     {
         if (null === $this->baseLangDir) {
             $baseLang = $this->getBaseLang();
-            $this->baseLangDir = $this->getBasePath() . '/resources/lang/' . $baseLang->code . '/';
+
+            if (empty($baseLang->code)) {
+                throw new TranslatorException('BaseLang not exists!');
+            }
+
+            $this->baseLangDir = $this->getBasePath() . self::BASE_LANG_PATH . $baseLang->code . '/';
         }
         return $this->baseLangDir;
     }
@@ -59,7 +172,7 @@ class Translator
         return $this->unprocessedLocales;
     }
 
-    public function loadLocales($path)
+    protected function loadLocales($path)
     {
         if(!is_dir($path)) {
             return false;
@@ -84,7 +197,7 @@ class Translator
         } while(next($files));
     }
 
-    public function prepareLocales($unprocessedLocales, $path = '')
+    protected function prepareLocales($unprocessedLocales, $path = '')
     {
         if(empty($unprocessedLocales)) {
             return false;

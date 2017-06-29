@@ -1,40 +1,23 @@
 <?php
 
-namespace App\Translator\Http\Controllers\Api;
+namespace App\Translator\Http\Controllers;
 
 use Illuminate\Routing\Controller as BaseController;
-use GuzzleHttp\Client;
-use Exception;
 use App\Translator\Models\Translator;
+use Exception;
 use Log;
 
-class TranslatorController extends BaseController
+class TranslatorApiController extends BaseController
 {
-    const API_URL = 'http://fnukraine.pp.ua/api/v2/';
-
     protected $model;
-    protected $client;
-    protected $apiKey;
 
 	const REQUEST_SIZE = 100;
 	const RECEIVE_SIZE = 1000;
 
-	protected function client()
+    public function __construct()
     {
-        if (null === $this->client) {
-            $this->client = new Client([
-                'base_uri' => self::API_URL
-            ]);
-        }
-        return $this->client;
-    }
-
-    protected function getApiKey()
-    {
-        if (null === $this->apiKey) {
-            $this->apiKey = env('TRANSLATOR_API_KEY');
-        }
-        return $this->apiKey;
+        $apiKey = env('TRANSLATOR_API_KEY');
+        $this->model = new Translator($apiKey);
     }
 
     protected function responseError($messsage = null, $code = 400)
@@ -55,41 +38,27 @@ class TranslatorController extends BaseController
 
     public function init()
     {
-        if(!$this->getApiKey()) {
-            return $this->responseError('TRANSLATOR_API_KEY not exists');
-        }
-
-        $this->model = new Translator();
-
         try {
-            $response = $this->client()->get('project?api_key=' . $this->getApiKey());
-
-            if ($response->getBody()) {
-                $response = json_decode($response->getBody());
-
-                if (!empty($response->data)) {
-                    if (isset($response->data->language)) {
-                        $this->model->setBaseLang($response->data->language);
-                    }
-                    if (isset($response->data->languages)) {
-                        $this->model->setLanguages($response->data->languages);
-                    }
-                }
-
-                return $this->responseSuccess([
-                    'base_lang' => $this->model->getBaseLang(),
-                    'languages' => $this->model->getLanguages(),
-                ]);
-            }
+            $data = $this->model->init();
+            return $this->responseSuccess($data);
         } catch(Exception $e) {
-            Log::error('TRANSLATOR: ' . $e->getResponse()->getBody()->getContents());
+            Log::error('TRANSLATOR: ' . $e->getResponse()->getBody()->getContents() . '; Exception: ' . $e->getMessage());
             return $this->responseError($e->getMessage());
         }
     }
 
 	public function export()
 	{
-        $this->init();
+        try {
+	        $this->model->export();
+            return $this->responseSuccess();
+        }
+        catch(Exception $e) {
+            Log::error('TRANSLATOR: ' . $e->getMessage());
+            return $this->responseError($e->getMessage());
+        }
+
+        /*$this->init();
 
         $processedLocales = $this->model->locales();
 
@@ -124,7 +93,7 @@ class TranslatorController extends BaseController
 				Log::error('TRANSLATOR: ' . $e->getMessage());
                 return $this->responseError($e->getMessage());
 			}
-		}
+		}*/
 	}
 
     public function import()
