@@ -2,15 +2,17 @@
 
 namespace App\Translator\Models;
 
-use GuzzleHttp\Client as HttpClient;
-use App\Translator\Exceptions\TranslatorException;
+use WebTranslator\{
+    Collection,
+    Translation,
+    WebTranslator
+};
 
 class Translator
 {
-    const API_URL = 'http://fnukraine.pp.ua/api/v2/';
     const BASE_LANG_PATH = '/resources/lang/';
 
-    const REQUEST_SIZE = 100;
+    const REQUEST_SIZE = 2;
     const RECEIVE_SIZE = 1000;
 
     protected $client;
@@ -21,314 +23,204 @@ class Translator
     protected $files              = [];
 
     protected $baseLangDir;
+    protected $baseLangsDir;
     protected $baseLang;
     protected $languages;
 
-    public function __construct($apiKey = null)
-    {
-        $client = new HttpClient([
-            'base_uri' => self::API_URL
-        ]);
+    protected $webTranslator;
 
-        $this->setClient($client);
-        $this->setApiKey($apiKey);
+    public function __construct()
+    {
+        $this->setBaseLang(config('app.locale'));
+
+        $this->webTranslator = new WebTranslator(env('TRANSLATOR_API_KEY'));
     }
 
-    public function setClient($client = null)
-    {
-        $this->client = $client;
-
-        return $this;
-    }
-
-    public function getClient()
-    {
-        return $this->client;
-    }
-
-    public function setApiKey($apiKey)
-    {
-        $this->apiKey = $apiKey;
-
-        return $this;
-    }
-
-    public function getApiKey()
-    {
-        if (!$this->apiKey) {
-            throw new TranslatorException('TRANSLATOR_API_KEY not exists!');
-        }
-
-        return $this->apiKey;
-    }
-
-    public function getBasePath()
+    public function getBasePath(): string
     {
         return base_path();
     }
 
-    public function setBaseLang($lang)
+    public function setBaseLang($lang): self
     {
         $this->baseLang = $lang;
 
         return $this;
     }
 
-    public function setLanguages($languages)
-    {
-        $this->languages = $languages;
-
-        return $this;
-    }
-
-    public function getBaseLang()
+    public function getBaseLang(): string
     {
         return $this->baseLang;
     }
 
-    public function getLanguages()
+    public function import()
     {
-        return $this->languages;
-    }
+        $translations = $this->webTranslator->translations()->all();
 
-    public function init()
-    {
-        $response = $this->getClient()->get('project?api_key=' . $this->getApiKey());
-
-        if ($response->getBody()) {
-            $response = json_decode($response->getBody());
-
-            if (!empty($response->data)) {
-                if (isset($response->data->language)) {
-                    $this->setBaseLang($response->data->language);
-                }
-                if (isset($response->data->languages)) {
-                    $this->setLanguages($response->data->languages);
-                }
-            }
+        foreach ($translations as $translation) {
+            $this->saveTranslate(
+                $translation->getTranslation(),
+                $translation->getAbstractName(),
+                $translation->getGroup(),
+                $translation->getLanguage()
+            );
         }
-
-        return [
-            'base_lang' => $this->getBaseLang(),
-            'languages' => $this->getLanguages(),
-        ];
     }
 
     public function export()
     {
-        $this->init();
-        $this->locales();
+        $this->loadLocales();
 
-        $url = 'project/tasks/create?api_key=' . $this->getApiKey();
+        $collection = new Collection();
+        foreach ($this->processedLocales as $group => $abstractNames) {
+            foreach ($abstractNames as $abstractName => $originalValue) {
+                $translation = new Translation();
+                $translation->addGroup($group);
+                $translation->setAbstractName($abstractName);
+                $translation->setOriginalValue($originalValue);
 
-        $processedLocales = array_chunk($this->processedLocales, self::REQUEST_SIZE, true);
-        $locales = [];
-
-        foreach($processedLocales as $arrLocales) {
-            $pack = [];
-            foreach($arrLocales as $k => $v) {
-                $pack[] = [
-                    'name' => $k,
-                    'value' => $v
-                ];
-            }
-            $locales[]['data'] = $pack;
-        }
-
-        $result = 0;
-
-        if (!empty($locales)) {
-            foreach ($locales as $locale) {
-                $res = $this->getClient()->post($url, [
-                    'form_params' => $locale
-                ]);
-                $res = json_decode($res->getBody());
-                if (!empty($res->data->count)) {
-                    $result += $res->data->count;
-                }
+                $collection->add($translation);
             }
         }
 
-        return $result;
+        $this->webTranslator->translations()->create($collection);
     }
 
-    public function import()
-    {
-        $this->init();
-
-        $baseLang = $this->getBaseLang();
-        $languages = $this->getLanguages();
-
-        $result =[];
-
-        foreach ($languages as $language) {
-            if($language->id === $baseLang->id) {
-                continue;
-            }
-
-            $url = 'project/translations/' . $language->id . '?limit=' . self::RECEIVE_SIZE . '&api_key=' . $this->getApiKey();
-            $response = $this->getClient()->get($url);
-            $body = $response->getBody();
-
-            if ($body) {
-                $body = json_decode($body);
-
-                if (!empty($body->data->data)) {
-                    $data = $body->data->data;
-
-                    if (!$data = array_filter($data, function($v) {
-                        return !empty($v->translation);
-                    })) {
-                        continue;
-                    }
-
-                    $result[$language->code] = 0;
-
-                    foreach ($data as $d) {
-                        $d->name = preg_replace('/\/(' . $baseLang->code . ')/', '/' . $language->code, $d->name);
-                        $this->saveTranslate($d->name, $d->translation->value);
-                        $result[$language->code]++;
-                    }
-                }
-            }
-        }
-
-        return $result;
-    }
-
-    public function getBaseLangDir()
+    protected function getBaseLangDir(): string
     {
         if (null === $this->baseLangDir) {
             $baseLang = $this->getBaseLang();
 
-            if (empty($baseLang->code)) {
-                throw new TranslatorException('BaseLang not exists!');
-            }
-
-            $this->baseLangDir = $this->getBasePath() . self::BASE_LANG_PATH . $baseLang->code . '/';
+            $this->baseLangDir = $this->getBasePath() . self::BASE_LANG_PATH . $baseLang . '/';
         }
+
         return $this->baseLangDir;
     }
 
-    protected function locales($prepare = true)
+    protected function getBaseLangsDir(): string
     {
-        $path = $this->getBaseLangDir();
-        $this->loadLocales($path);
-
-        if ($prepare) {
-            $this->prepareLocales($this->unprocessedLocales);
-            return $this->processedLocales;
+        if (null === $this->baseLangsDir) {
+            $this->baseLangsDir = $this->getBasePath() . self::BASE_LANG_PATH;
         }
 
-        return $this->unprocessedLocales;
+        return $this->baseLangsDir;
     }
 
-    protected function loadLocales($path)
+    protected function loadLocales()
     {
-        if(!is_dir($path)) {
-            return false;
-        }
+        $path = $this->getBaseLangDir();
+        $baseLocalePath = substr($path, strpos($path, 'lang'), -1);
 
-        if(!$files = scandir($path)) {
-            return null;
+        $this->findLocales($path, $baseLocalePath);
+        $this->prepareLocales($this->unprocessedLocales);
+    }
+
+    protected function findLocales($path, $baseLocaleDir)
+    {
+        if (!is_dir($path) || !$files = scandir($path)) {
+            return;
         }
 
         $_path = substr($path, strpos($path, 'lang'), -1);
 
-        do {
-            if(current($files) === '.' || current($files) === '..') {
+        foreach ($files as $file) {
+            if ($file === '.' || $file === '..') {
                 continue;
             }
 
-            if(is_dir($this->baseLangDir . current($files))) {
-                $this->loadLocales($path . current($files) . '/');
+            if (is_dir($path . '/' . $file)) {
+                $this->findLocales($path . $file . '/', $baseLocaleDir);
             } else {
-                $this->unprocessedLocales[$_path][current($files)] = require_once $path . current($files);
+                $ext = explode('.', $file);
+                unset($ext[count($ext) - 1]);
+                $ext = implode('.', $ext);
+                $k = $_path . '/' . $ext;
+                $k = ltrim(str_replace($baseLocaleDir, '', $k), '/');
+
+                $this->unprocessedLocales[$k] = require_once $path . $file;
             }
-        } while(next($files));
+        }
     }
 
     protected function prepareLocales($unprocessedLocales, $path = '')
     {
-        if(empty($unprocessedLocales)) {
-            return false;
+        if (empty($unprocessedLocales)) {
+            return;
         }
 
         reset($unprocessedLocales);
 
         do {
-            if(is_array(current($unprocessedLocales))) {
+            if (is_array(current($unprocessedLocales))) {
                 $this->prepareLocales(current($unprocessedLocales), $path . '::' . key($unprocessedLocales));
             } else {
-                $this->processedLocales[$path . '::' . key($unprocessedLocales)] = current($unprocessedLocales);
+                $k = $path . '::' . key($unprocessedLocales);
+                $k = substr($k, 2);
+
+                $group = str_replace('::', '.', substr($k, strpos($k,'::') + 2));
+                $array = substr($k, 0, strpos($k,'::'));
+
+                $this->processedLocales[$array][$group] = current($unprocessedLocales);
             }
-        } while(next($unprocessedLocales));
+        } while (next($unprocessedLocales));
     }
 
-    protected function saveTranslate($name, &$translate)
-    {
-        $data = explode('::', $name);
-
-        $path = $data[1];
-        $file = $data[2];
-
-        unset($data[0], $data[1], $data[2]);
-
-        $data = array_values($data);
-
-        $path = $this->createTranslatePath($path);
-        $this->createTranslateFile($file, $path, $data, $translate);
+    public function saveTranslate(
+        $translate,
+        $abstractName,
+        $group,
+        $language) {
+        $file = $this->createTranslationPath($language, $group);
+        $this->createTranslationFile(
+            $file,
+            $translate,
+            $abstractName
+        );
     }
 
-    protected function createTranslatePath($unprocessedPath)
+    protected function createTranslationFile(string $file, string $translate, string $abstractName)
     {
-        $unprocessedPath = explode('/', $unprocessedPath);
+        $translatePath = explode('.', $abstractName);
+        $translatePath[] = $translate;
 
-        $path = $this->getBasePath() . '/resources';
-
-        if (!is_writable($path . '/lang')) {
-            throw new \Exception('Folder "' . $path . '" must be writable!');
-        }
-
-        do {
-            $path .=  '/' . current($unprocessedPath);
-            if(!is_dir($path)) {
-                mkdir($path);
-            }
-        } while(next($unprocessedPath));
-
-        return $path;
-    }
-
-    protected function createTranslateFile($fileName, $path, $array, $translate)
-    {
-        array_push($array, $translate);
-
-        if (file_exists($path . '/' . $fileName)) {
-            if (!isset($this->files[$path . '/' . $fileName])) {
-                $this->files[$path . '/' . $fileName] = require_once $path . '/' . $fileName;
+        if (file_exists($file)) {
+            if (!isset($this->files[$file])) {
+                $this->files[$file] = require_once $file;
             }
 
-            $data = array_replace_recursive($this->files[$path . '/' . $fileName], $this->makeArray($array));
+            $data = array_replace_recursive($this->files[$file], $this->makeArray($translatePath));
         } else {
-            $data = $this->makeArray($array);
+            $data = $this->makeArray($translatePath);
         }
 
-        $this->files[$path . '/' . $fileName] = $data;
+        $this->files[$file] = $data;
 
+        file_put_contents($file, "<?php\n\nreturn " . $this->makeTranslationContent($data) . ";");
+    }
+
+    protected function makeTranslationContent(array $data): string
+    {
         $data = json_encode($data, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE);
         $data = str_replace("{\n", "[\n",
-                str_replace("}\n", "]\n",
+            str_replace("}\n", "]\n",
                 str_replace("},\n", "],\n",
-                str_replace('":', '" =>', $data))));
-        $data[strlen($data) - 1] = "]";
-        $data = trim(str_replace('    ', "\t", $data));
+                    str_replace('":', '" =>', $data))));
+        $data[strlen($data) - 1] = "]\n";
 
-        if (!is_writable($path)) {
-            throw new \Exception('Folder "' . $path . '" must be writable!');
+        return $data;
+    }
+
+    protected function createTranslationPath(string $lang, string $path): string
+    {
+        $path = explode('/', $path);
+        $file = array_pop($path);
+        $path = $this->getBaseLangsDir() . $lang . '/' . implode('/', $path);
+
+        if (!is_dir($path)) {
+            mkdir($path, 0775, true);
         }
 
-        file_put_contents($path . '/' . $fileName, "<?php\n\nreturn " . $data . ";");
+        return $path . '/' . $file . '.php';
     }
 
     protected function makeArray(Array &$array)
