@@ -204,10 +204,11 @@ class Translator
         $data = str_replace("{\n", "[\n",
             str_replace("}\n", "]\n",
                 str_replace("},\n", "],\n",
-                    str_replace('":', '" =>', $data))));
+                    str_replace('":', '" =>',
+                        str_replace('\/', '/', $data)))));
         $data[strlen($data) - 1] = "]\n";
 
-        return $data;
+        return html_entity_decode($data);
     }
 
     protected function createTranslationPath(string $lang, string $path): string
