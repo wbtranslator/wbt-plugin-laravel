@@ -67,54 +67,5 @@ class TranslatorApiController extends BaseController
 
         return $this->responseSuccess();
     }
-
-//    public function import()
-//    {
-//        $this->init();
-//
-//        $baseLang = $this->model->getBaseLang();
-//        $languages = $this->model->getLanguages();
-//
-//        $result =[];
-//
-//        try {
-//            foreach ($languages as $language) {
-//                if($language->id === $baseLang->id) {
-//                    continue;
-//                }
-//
-//                $url = 'project/translations/' . $language->id . '?limit=' . self::RECEIVE_SIZE . '&api_key=' . $this->getApiKey();
-//                $response = $this->client()->get($url);
-//                $body = $response->getBody();
-//
-//                if ($body) {
-//                    $body = json_decode($body);
-//
-//                    if (!empty($body->data->data)) {
-//                        $data = $body->data->data;
-//
-//                        if (!$data = array_filter($data, function($v) {
-//                            return !empty($v->translation);
-//                        })) {
-//                            continue;
-//                        }
-//
-//                        $result[$language->code] = 0;
-//
-//                        foreach ($data as $d) {
-//                            $d->name = preg_replace('/\/(' . $baseLang->code . ')/', '/' . $language->code, $d->name);
-//                            $this->model->saveTranslate($d->name, $d->translation->value);
-//                            $result[$language->code]++;
-//                        }
-//                    }
-//                }
-//            }
-//        } catch(Exception $e) {
-//            Log::error('TRANSLATOR: ' . $e->getMessage());
-//            return $this->responseError($e->getMessage());
-//        }
-//
-//        return $this->responseSuccess($result);
-//    }
 }
 
