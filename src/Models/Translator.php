@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Translator\Models;
+namespace WBT\LaravelPlugin\Models;
 
 use WebTranslator\{
     Collection,
@@ -33,7 +33,7 @@ class Translator
     {
         $this->setBaseLang(config('app.locale'));
 
-        $this->webTranslator = new WebTranslator(env('TRANSLATOR_API_KEY'));
+        $this->webTranslator = new WebTranslator(config('wbt.api_key'));
     }
 
     public function getBasePath(): string

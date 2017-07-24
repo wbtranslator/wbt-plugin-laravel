@@ -1,13 +1,13 @@
 <?php
 
-namespace App\Translator\Http\Controllers;
+namespace WBT\LaravelPlugin\Http\Controllers;
 
 use Illuminate\Routing\Controller as BaseController;
-use App\Translator\Models\Translator;
+use WBT\LaravelPlugin\Models\Translator;
 use Exception;
 use Log;
 
-class TranslatorApiController extends BaseController
+class ApiController extends BaseController
 {
     protected $model;
 

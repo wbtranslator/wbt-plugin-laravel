@@ -4,6 +4,7 @@
 .classpath
 *.launch
 .settings/
+vendor/
 
 #System Files
 .DS_Store
