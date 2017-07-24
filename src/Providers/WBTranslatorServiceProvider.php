@@ -30,6 +30,6 @@ class WBTranslatorServiceProvider extends ServiceProvider
     
     private function getConfigPath()
     {
-        return realpath(__DIR__ . '/../') . '/config/wbt.php';
+        return realpath(__DIR__ . '/../../') . '/config/wbt.php';
     }
 }
