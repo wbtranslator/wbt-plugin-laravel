@@ -1,5 +1,5 @@
 {
-  "name": "futurenetukraine/wbt-plugin-laravel",
+  "name": "wbtranslator/wbt-plugin-laravel",
   "description": "Laravel plugin for WBTranslator",
   "version": "0.0.1",
   "license": "MIT",
