@@ -59,7 +59,6 @@ class ApiController extends BaseController
     {
         try {
             $this->model->import();
-            
         } catch (Exception $e) {
             Log::error('TRANSLATOR: ' . $e->getMessage());
             return $this->responseError($e->getMessage());
@@ -68,4 +67,3 @@ class ApiController extends BaseController
         return $this->responseSuccess();
     }
 }
-
