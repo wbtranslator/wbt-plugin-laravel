@@ -25,12 +25,12 @@
   },
   "autoload": {
     "psr-4": {
-      "WBT\\LaravelPlugin\\": "src/"
+      "WBT\\PluginLaravel\\": "src/"
     }
   },
   "autoload-dev": {
     "psr-4": {
-      "WBT\\LaravelPluginTests\\": "tests/src/"
+      "WBT\\PluginLaravelTests\\": "tests/src/"
     }
   }
 }

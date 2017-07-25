@@ -1,6 +1,6 @@
 <?php
 
-namespace WBT\LaravelPlugin\Models;
+namespace WBT\PluginLaravel\Models;
 
 use WebTranslator\{
     Collection,
@@ -8,15 +8,12 @@ use WebTranslator\{
     WebTranslator
 };
 
-class Translator
+class WBTranslatorModel
 {
     const BASE_LANG_PATH = '/resources/lang/';
 
     const REQUEST_SIZE = 2;
     const RECEIVE_SIZE = 1000;
-
-    protected $client;
-    protected $apiKey;
 
     protected $unprocessedLocales = [];
     protected $processedLocales   = [];

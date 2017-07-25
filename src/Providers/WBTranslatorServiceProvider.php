@@ -1,6 +1,6 @@
 <?php
 
-namespace WBT\LaravelPlugin\Providers;
+namespace WBT\PluginLaravel\Providers;
 
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\ServiceProvider;
@@ -12,11 +12,11 @@ class WBTranslatorServiceProvider extends ServiceProvider
         $paths = [$this->getConfigPath() => config_path('wbt.php')];
         $this->publishes($paths, 'config');
         
-        Route::group(['prefix' => 'translator', 'namespace' => 'WBT\LaravelPlugin\Http\Controllers'], function () {
+        Route::group(['prefix' => 'translator', 'namespace' => 'WBT\PluginLaravel\Http\Controllers'], function () {
             Route::group(['prefix' => 'api'], function () {
-                Route::get('init', 'ApiController@init');
+                //Route::get('init', 'ApiController@init');
                 Route::get('export', 'ApiController@export');
-                Route::get('import', 'Controller@import');
+                Route::get('import', 'ApiController@import');
             });
         
             Route::get('/', 'ApiController@index');
@@ -30,6 +30,6 @@ class WBTranslatorServiceProvider extends ServiceProvider
     
     private function getConfigPath()
     {
-        return realpath(__DIR__ . '/../../') . '/config/wbt.php';
+        return __DIR__ . '/../Z:/';
     }
 }
