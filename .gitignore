@@ -1,11 +1,9 @@
-# IDEs and editors
 .idea
 .project
 .classpath
 *.launch
 .settings/
 vendor/
-
-#System Files
+composer.lock
 .DS_Store
 Thumbs.db
