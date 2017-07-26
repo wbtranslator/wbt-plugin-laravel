@@ -1,127 +1,51 @@
 <?php
 
-namespace App\Translator\Models;
+namespace WBT\PluginLaravel\Models;
 
-use WebTranslator\{
-    Collection,
-    Translation,
-    WebTranslator
-};
-
-class Translator
+class WBTranslatorLangModel
 {
-    const BASE_LANG_PATH = '/resources/lang/';
-
-    const REQUEST_SIZE = 2;
-    const RECEIVE_SIZE = 1000;
-
-    protected $client;
-    protected $apiKey;
-
     protected $unprocessedLocales = [];
     protected $processedLocales   = [];
     protected $files              = [];
 
     protected $baseLangDir;
     protected $baseLangsDir;
-    protected $baseLang;
     protected $languages;
-
-    protected $webTranslator;
+    
+    protected $baseLang;
+    protected $langPath;
 
     public function __construct()
     {
-        $this->setBaseLang(config('app.locale'));
-
-        $this->webTranslator = new WebTranslator(env('TRANSLATOR_API_KEY'));
+        $app = app();
+        $config = config('wbt');
+        
+        $this->baseLang = !empty($config['locale']) ? $app->setLocale($config['locale']) : $app->getLocale();
+        $this->langPath = !empty($config['lang_path']) ? $config['lang_path'] : $app->langPath();
+        $this->langPath = rtrim($this->langPath, '/') . '/';
     }
-
-    public function getBasePath(): string
+    
+    public function loadLocales()
     {
-        return base_path();
-    }
-
-    public function setBaseLang($lang): self
-    {
-        $this->baseLang = $lang;
-
-        return $this;
-    }
-
-    public function getBaseLang(): string
-    {
-        return $this->baseLang;
-    }
-
-    public function import()
-    {
-        $translations = $this->webTranslator->translations()->all();
-
-        foreach ($translations as $translation) {
-            $this->saveTranslate(
-                $translation->getTranslation(),
-                $translation->getAbstractName(),
-                $translation->getGroup(),
-                $translation->getLanguage()
-            );
-        }
-    }
-
-    public function export()
-    {
-        $this->loadLocales();
-
-        $collection = new Collection();
-        foreach ($this->processedLocales as $group => $abstractNames) {
-            foreach ($abstractNames as $abstractName => $originalValue) {
-                $translation = new Translation();
-                $translation->addGroup($group);
-                $translation->setAbstractName($abstractName);
-                $translation->setOriginalValue($originalValue);
-
-                $collection->add($translation);
-            }
-        }
-
-        $this->webTranslator->translations()->create($collection);
-    }
-
-    protected function getBaseLangDir(): string
-    {
-        if (null === $this->baseLangDir) {
-            $baseLang = $this->getBaseLang();
-
-            $this->baseLangDir = $this->getBasePath() . self::BASE_LANG_PATH . $baseLang . '/';
-        }
-
-        return $this->baseLangDir;
-    }
-
-    protected function getBaseLangsDir(): string
-    {
-        if (null === $this->baseLangsDir) {
-            $this->baseLangsDir = $this->getBasePath() . self::BASE_LANG_PATH;
-        }
-
-        return $this->baseLangsDir;
-    }
-
-    protected function loadLocales()
-    {
-        $path = $this->getBaseLangDir();
-        $baseLocalePath = substr($path, strpos($path, 'lang'), -1);
-
-        $this->findLocales($path, $baseLocalePath);
+        $this->findLocales($this->langPath, base_path());
         $this->prepareLocales($this->unprocessedLocales);
+        
+        return $this->processedLocales;
     }
-
+    
+    public function saveTranslate($translate, $abstractName, $group, $language)
+    {
+        $file = $this->createTranslationPath($language, $group);
+        $this->createTranslationFile($file, $translate, $abstractName);
+    }
+    
     protected function findLocales($path, $baseLocaleDir)
     {
         if (!is_dir($path) || !$files = scandir($path)) {
             return;
         }
 
-        $_path = substr($path, strpos($path, 'lang'), -1);
+       $_path = substr($path, strpos($path, 'lang'), -1);
 
         foreach ($files as $file) {
             if ($file === '.' || $file === '..') {
@@ -165,19 +89,6 @@ class Translator
         } while (next($unprocessedLocales));
     }
 
-    public function saveTranslate(
-        $translate,
-        $abstractName,
-        $group,
-        $language) {
-        $file = $this->createTranslationPath($language, $group);
-        $this->createTranslationFile(
-            $file,
-            $translate,
-            $abstractName
-        );
-    }
-
     protected function createTranslationFile(string $file, string $translate, string $abstractName)
     {
         $translatePath = explode('.', $abstractName);
@@ -211,11 +122,11 @@ class Translator
         return html_entity_decode($data);
     }
 
-    protected function createTranslationPath(string $lang, string $path): string
+    protected function createTranslationPath(string $lang, string $path)
     {
         $path = explode('/', $path);
         $file = array_pop($path);
-        $path = $this->getBaseLangsDir() . $lang . '/' . implode('/', $path);
+        $path = $this->langPath . $lang . '/' . implode('/', $path);
 
         if (!is_dir($path)) {
             mkdir($path, 0775, true);

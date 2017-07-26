@@ -1,13 +1,13 @@
 <?php
 
-namespace App\Translator\Http\Controllers;
+namespace WBT\PluginLaravel\Http\Controllers;
 
 use Illuminate\Routing\Controller as BaseController;
-use App\Translator\Models\Translator;
+use WBT\PluginLaravel\Models\WBTranslatorModel;
 use Exception;
 use Log;
 
-class TranslatorApiController extends BaseController
+class ApiController extends BaseController
 {
     protected $model;
 
@@ -16,7 +16,7 @@ class TranslatorApiController extends BaseController
 
     public function __construct()
     {
-        $this->model = new Translator();
+        $this->model = new WBTranslatorModel();
     }
 
     protected function responseError($messsage = null, $code = 400)
@@ -35,13 +35,12 @@ class TranslatorApiController extends BaseController
         ], $code);
     }
 
+    /**
+     * @todo: implement method
+     */
     public function init()
     {
-        try {
-        } catch (Exception $e) {
-            Log::error('TRANSLATOR: ' . $e->getResponse()->getBody()->getContents() . '; Exception: ' . $e->getMessage());
-            return $this->responseError($e->getMessage());
-        }
+        return $this->responseSuccess();
     }
 
     public function export()
@@ -68,4 +67,3 @@ class TranslatorApiController extends BaseController
         return $this->responseSuccess();
     }
 }
-
