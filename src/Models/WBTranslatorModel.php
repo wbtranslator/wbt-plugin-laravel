@@ -24,7 +24,7 @@ class WBTranslatorModel
     public function import()
     {
         $model = new WBTranslatorLangModel();
-        
+
         $translations = $this->sdk->translations()->all();
 
         foreach ($translations as $translation) {
@@ -39,8 +39,8 @@ class WBTranslatorModel
 
     public function export()
     {
-        $model = new WBTranslatorLangModel();
-        $locales = $model->loadLocales();
+        $model = new AbstractionExport();
+        $locales = $model->getAbstractions();
 
         $collection = new Collection();
         foreach ($locales as $group => $abstractNames) {
@@ -54,6 +54,6 @@ class WBTranslatorModel
             }
         }
 
-        $this->sdk->translations()->create($collection);
+//        $this->sdk->translations()->create($collection);
     }
 }

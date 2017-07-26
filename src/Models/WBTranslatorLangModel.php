@@ -20,9 +20,8 @@ class WBTranslatorLangModel
         $app = app();
         $config = config('wbt');
         
-        $this->baseLang = !empty($config['locale']) ? $app->setLocale($config['locale']) : $app->getLocale();
-        $this->langPath = !empty($config['lang_path']) ? $config['lang_path'] : $app->langPath();
-        $this->langPath = rtrim($this->langPath, '/') . '/';
+        $this->baseLang = $app->getLocale();
+        $this->langPath = rtrim($app->langPath(), DIRECTORY_SEPARATOR) . DIRECTORY_SEPARATOR;
     }
     
     public function loadLocales()
