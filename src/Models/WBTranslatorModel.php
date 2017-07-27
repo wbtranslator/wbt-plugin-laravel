@@ -11,20 +11,22 @@ use WebTranslator\{
 class WBTranslatorModel
 {
     protected $sdk;
+    protected $collection;
 
     public function __construct()
     {
         /*$client = new \GuzzleHttp\Client([
             'base_uri' => 'http://192.168.88.149:8080/api/project/'
         ]);*/
-        
+
+        $this->collection = new Collection();
         $this->sdk = new WebTranslator(config('wbt.api_key'), $client ?? null);
     }
 
     public function import()
     {
         $model = new WBTranslatorLangModel();
-        
+
         $translations = $this->sdk->translations()->all();
 
         foreach ($translations as $translation) {
@@ -39,21 +41,29 @@ class WBTranslatorModel
 
     public function export()
     {
-        $model = new WBTranslatorLangModel();
-        $locales = $model->loadLocales();
+        $export = new AbstractionExport();
+        $locales = $export->getAbstractions();
 
-        $collection = new Collection();
         foreach ($locales as $group => $abstractNames) {
-            foreach ($abstractNames as $abstractName => $originalValue) {
+            $this->getAbstractionsRecursively($abstractNames, $group);
+        }
+
+        $this->sdk->translations()->create($this->collection);
+    }
+
+    private function getAbstractionsRecursively($abstractNames, $group = '')
+    {
+        foreach ($abstractNames as $abstractName => $originalValue) {
+            if (is_array($originalValue)) {
+                $this->getAbstractionsRecursively($originalValue,$group . self::SEPARATOR . $abstractName );
+            } else {
                 $translation = new Translation();
                 $translation->addGroup($group);
                 $translation->setAbstractName($abstractName);
                 $translation->setOriginalValue($originalValue);
 
-                $collection->add($translation);
+                $this->collection->add($translation);
             }
         }
-
-        $this->sdk->translations()->create($collection);
     }
 }
