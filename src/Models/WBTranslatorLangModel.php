@@ -11,7 +11,7 @@ class WBTranslatorLangModel
     protected $baseLangDir;
     protected $baseLangsDir;
     protected $languages;
-    
+
     protected $baseLang;
     protected $langPath;
 
@@ -19,73 +19,16 @@ class WBTranslatorLangModel
     {
         $app = app();
         $config = config('wbt');
-        
+
         $this->baseLang = $app->getLocale();
         $this->langPath = rtrim($app->langPath(), DIRECTORY_SEPARATOR) . DIRECTORY_SEPARATOR;
     }
-    
-    public function loadLocales()
-    {
-        $this->findLocales($this->langPath, base_path());
-        $this->prepareLocales($this->unprocessedLocales);
-        
-        return $this->processedLocales;
-    }
-    
+
+
     public function saveTranslate($translate, $abstractName, $group, $language)
     {
         $file = $this->createTranslationPath($language, $group);
         $this->createTranslationFile($file, $translate, $abstractName);
-    }
-    
-    protected function findLocales($path, $baseLocaleDir)
-    {
-        if (!is_dir($path) || !$files = scandir($path)) {
-            return;
-        }
-
-       $_path = substr($path, strpos($path, 'lang'), -1);
-
-        foreach ($files as $file) {
-            if ($file === '.' || $file === '..') {
-                continue;
-            }
-
-            if (is_dir($path . '/' . $file)) {
-                $this->findLocales($path . $file . '/', $baseLocaleDir);
-            } else {
-                $ext = explode('.', $file);
-                unset($ext[count($ext) - 1]);
-                $ext = implode('.', $ext);
-                $k = $_path . '/' . $ext;
-                $k = ltrim(str_replace($baseLocaleDir, '', $k), '/');
-
-                $this->unprocessedLocales[$k] = require_once $path . $file;
-            }
-        }
-    }
-
-    protected function prepareLocales($unprocessedLocales, $path = '')
-    {
-        if (empty($unprocessedLocales)) {
-            return;
-        }
-
-        reset($unprocessedLocales);
-
-        do {
-            if (is_array(current($unprocessedLocales))) {
-                $this->prepareLocales(current($unprocessedLocales), $path . '::' . key($unprocessedLocales));
-            } else {
-                $k = $path . '::' . key($unprocessedLocales);
-                $k = substr($k, 2);
-
-                $group = str_replace('::', '.', substr($k, strpos($k,'::') + 2));
-                $array = substr($k, 0, strpos($k,'::'));
-
-                $this->processedLocales[$array][$group] = current($unprocessedLocales);
-            }
-        } while (next($unprocessedLocales));
     }
 
     protected function createTranslationFile(string $file, string $translate, string $abstractName)
