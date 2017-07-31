@@ -14,7 +14,7 @@ class AbstractionExport extends AbstractionBase
         foreach ($this->getDataFromFile() as $group => $abstractNames) {
             foreach ((array_dot($abstractNames)) as $abstractName => $originalValue) {
                 $translation = new Translation();
-                $translation->addGroup($group);
+                $translation->setGroup($group);
                 $translation->setAbstractName($abstractName);
                 $translation->setOriginalValue($originalValue);
 
