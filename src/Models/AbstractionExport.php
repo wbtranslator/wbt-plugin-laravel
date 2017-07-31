@@ -13,10 +13,14 @@ class AbstractionExport extends AbstractionBase
 
         foreach ($this->getDataFromFile() as $group => $abstractNames) {
             foreach ((array_dot($abstractNames)) as $abstractName => $originalValue) {
+                if (!$abstractName) {
+                    continue;
+                }
+
                 $translation = new Translation();
                 $translation->setGroup($group);
                 $translation->setAbstractName($abstractName);
-                $translation->setOriginalValue($originalValue);
+                $translation->setOriginalValue(!empty($originalValue) ? (string)$originalValue : '');
 
                 $collection->add($translation);
             }
