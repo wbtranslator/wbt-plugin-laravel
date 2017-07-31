@@ -2,9 +2,31 @@
 
 namespace WBT\PluginLaravel\Models;
 
+use WebTranslator\Collection;
+use WebTranslator\Translation;
+
 class AbstractionExport extends AbstractionBase
 {
-    public function getAbstractions(): array
+    public function export()
+    {
+        $collection = new Collection();
+
+        foreach ($this->getDataFromFile() as $group => $abstractNames) {
+            foreach ((array_dot($abstractNames)) as $abstractName => $originalValue) {
+                $translation = new Translation();
+                $translation->addGroup($group);
+                $translation->setAbstractName($abstractName);
+                $translation->setOriginalValue($originalValue);
+
+                $collection->add($translation);
+            }
+        }
+
+        return $collection;
+    }
+
+
+    public function getDataFromFile(): array
     {
         $abstractions = [];
 
@@ -15,7 +37,7 @@ class AbstractionExport extends AbstractionBase
 
             if (file_exists($absolutePath)) {
                 if (!empty($data) && is_array($data)) {
-                    $abstractions[$this->alterPathName($relativePath)] = $data;
+                    $abstractions[$this->getGroup($relativePath)] = $data;
                 }
             }
         }
@@ -23,7 +45,7 @@ class AbstractionExport extends AbstractionBase
         return $abstractions;
     }
 
-    private function alterPathName(string $path): string
+    private function getGroup(string $path): string
     {
         return str_replace([DIRECTORY_SEPARATOR, '.php'], ['::', ''], $path);
     }
