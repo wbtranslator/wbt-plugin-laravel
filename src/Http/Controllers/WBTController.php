@@ -2,12 +2,11 @@
 
 namespace WBT\PluginLaravel\Http\Controllers;
 
+use Illuminate\Routing\Controller as BaseController;
 use Log;
-use Exception;
-use WebTranslator\WebTranslator;
 use WBT\PluginLaravel\Models\AbstractionExport;
 use WBT\PluginLaravel\Models\AbstractionImport;
-use Illuminate\Routing\Controller as BaseController;
+use WebTranslator\WebTranslator;
 
 class WBTController extends BaseController
 {
@@ -25,13 +24,7 @@ class WBTController extends BaseController
     {
         $abstractionExport = new AbstractionExport();
         $dataForExport = $abstractionExport->export();
-
-        try {
-            $this->sdk->translations()->create($dataForExport);
-        } catch (Exception $e) {
-            Log::error('TRANSLATOR: ' . $e->getMessage());
-            return $this->responseError($e->getMessage());
-        }
+        $this->sdk->translations()->create($dataForExport);
 
         return $this->responseSuccess();
     }
@@ -40,13 +33,7 @@ class WBTController extends BaseController
     {
         $abstractionImport = new AbstractionImport();
         $translations = $this->sdk->translations()->all();
-
-        try {
-            $abstractionImport->import($translations);
-        } catch (\Exception $e) {
-            Log::error('TRANSLATOR: ' . $e->getMessage());
-            return $this->responseError($e->getMessage());
-        }
+        $abstractionImport->import($translations);
 
         return $this->responseSuccess();
     }

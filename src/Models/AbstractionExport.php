@@ -7,7 +7,7 @@ use WebTranslator\Translation;
 
 class AbstractionExport extends AbstractionBase
 {
-    public function export()
+    public function export() :Collection
     {
         $collection = new Collection();
 
