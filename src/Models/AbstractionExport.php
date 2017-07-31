@@ -29,8 +29,7 @@ class AbstractionExport extends AbstractionBase
         return $collection;
     }
 
-
-    public function getDataFromFile(): array
+    private function getDataFromFile(): array
     {
         $abstractions = [];
 
