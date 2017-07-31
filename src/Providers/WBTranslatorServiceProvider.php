@@ -13,13 +13,8 @@ class WBTranslatorServiceProvider extends ServiceProvider
         $this->publishes($paths, 'config');
         
         Route::group(['prefix' => 'wbt', 'namespace' => 'WBT\PluginLaravel\Http\Controllers'], function () {
-            Route::group(['prefix' => 'api'], function () {
-                Route::get('init', 'ApiController@init');
-                Route::get('export', 'ApiController@export');
-                Route::get('import', 'ApiController@import');
-            });
-        
-            Route::get('/', 'ApiController@index');
+                Route::get('export', 'WBTController@export');
+                Route::get('import', 'WBTController@import');
         });
     }
     
