@@ -29,7 +29,7 @@ class WBTranslatorController extends BaseController
     
         try {
             $result = $this->sdk->translations()->create($data);
-            return $this->responseSuccess(null, count($result));
+            return $this->responseSuccess(count($result));
         } catch (\Exception $e) {
             return $this->responseError();
         }
