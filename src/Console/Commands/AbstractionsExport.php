@@ -51,4 +51,3 @@ class AbstractionsExport extends Command
         $this->info($response->getContent());
     }
 }
-}

@@ -51,4 +51,3 @@ class AbstractionsImport extends Command
         $this->info($response->getContent());
     }
 }
-}
