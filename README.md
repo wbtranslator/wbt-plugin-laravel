@@ -1,4 +1,4 @@
-# WEB Translator Laravel Plugin
+# WBTranslator Plugin Laravel
 
 ### Copy plugin folder Translator to PROJECT_PATH/app 
 ```

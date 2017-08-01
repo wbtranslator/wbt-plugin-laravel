@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#composer-lock-the-lock-file",
         "This file is @generated automatically"
     ],
-    "content-hash": "8836a499c7fe8553ec4d033ff0099ea8",
+    "content-hash": "a71f88071186507f2637052e1c183376",
     "packages": [
         {
             "name": "doctrine/collections",
@@ -306,16 +306,16 @@
         },
         {
             "name": "wbtranslator/wbt-sdk-php",
-            "version": "dev-master",
+            "version": "dev-sdk",
             "source": {
                 "type": "git",
                 "url": "https://github.com/wbtranslator/wbt-sdk-php.git",
-                "reference": "4270ec28d706c108eff398c421f42f445cdefc53"
+                "reference": "3ecb53102cfbd40abc0e3f0491062c5296b59f5f"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/wbtranslator/wbt-sdk-php/zipball/4270ec28d706c108eff398c421f42f445cdefc53",
-                "reference": "4270ec28d706c108eff398c421f42f445cdefc53",
+                "url": "https://api.github.com/repos/wbtranslator/wbt-sdk-php/zipball/3ecb53102cfbd40abc0e3f0491062c5296b59f5f",
+                "reference": "3ecb53102cfbd40abc0e3f0491062c5296b59f5f",
                 "shasum": ""
             },
             "require": {
@@ -329,12 +329,12 @@
             "type": "library",
             "autoload": {
                 "psr-4": {
-                    "WebTranslator\\": "src/"
+                    "WBTranslator\\": "src/"
                 }
             },
             "autoload-dev": {
                 "psr-4": {
-                    "WebTranslator\\Tests\\": "tests/"
+                    "WBTranslator\\Tests\\": "tests/"
                 }
             },
             "authors": [
@@ -344,10 +344,10 @@
                 }
             ],
             "support": {
-                "source": "https://github.com/wbtranslator/wbt-sdk-php/tree/master",
+                "source": "https://github.com/wbtranslator/wbt-sdk-php/tree/sdk",
                 "issues": "https://github.com/wbtranslator/wbt-sdk-php/issues"
             },
-            "time": "2017-07-25 07:01:10"
+            "time": "2017-07-31 20:31:29"
         }
     ],
     "packages-dev": [
@@ -965,12 +965,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/sebastianbergmann/php-token-stream.git",
-                "reference": "9ddb181faa4a3841fe131c357fd01de75cbb4da9"
+                "reference": "a6ce111630a5eea291d13c273295853ac1a7bf1f"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/sebastianbergmann/php-token-stream/zipball/9ddb181faa4a3841fe131c357fd01de75cbb4da9",
-                "reference": "9ddb181faa4a3841fe131c357fd01de75cbb4da9",
+                "url": "https://api.github.com/repos/sebastianbergmann/php-token-stream/zipball/a6ce111630a5eea291d13c273295853ac1a7bf1f",
+                "reference": "a6ce111630a5eea291d13c273295853ac1a7bf1f",
                 "shasum": ""
             },
             "require": {
@@ -1006,7 +1006,7 @@
             "keywords": [
                 "tokenizer"
             ],
-            "time": "2017-03-07 07:36:57"
+            "time": "2017-07-25 09:28:19"
         },
         {
             "name": "phpunit/phpunit",
@@ -1014,12 +1014,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/sebastianbergmann/phpunit.git",
-                "reference": "2221f4486c6f232cb93aed59487042116f3bd5d4"
+                "reference": "a3b2fc068fdf4f9392da1fffec3782e3454bf971"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/sebastianbergmann/phpunit/zipball/2221f4486c6f232cb93aed59487042116f3bd5d4",
-                "reference": "2221f4486c6f232cb93aed59487042116f3bd5d4",
+                "url": "https://api.github.com/repos/sebastianbergmann/phpunit/zipball/a3b2fc068fdf4f9392da1fffec3782e3454bf971",
+                "reference": "a3b2fc068fdf4f9392da1fffec3782e3454bf971",
                 "shasum": ""
             },
             "require": {
@@ -1090,7 +1090,7 @@
                 "testing",
                 "xunit"
             ],
-            "time": "2017-07-09 09:35:02"
+            "time": "2017-07-30T08:28:26+00:00"
         },
         {
             "name": "phpunit/phpunit-mock-objects",
@@ -1098,12 +1098,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/sebastianbergmann/phpunit-mock-objects.git",
-                "reference": "d8833b396dce9162bb2eb5d59aee5a3ab3cfa5b4"
+                "reference": "78ad28713e7e3a96c7597d1e24f4a393dff7d6b4"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/sebastianbergmann/phpunit-mock-objects/zipball/d8833b396dce9162bb2eb5d59aee5a3ab3cfa5b4",
-                "reference": "d8833b396dce9162bb2eb5d59aee5a3ab3cfa5b4",
+                "url": "https://api.github.com/repos/sebastianbergmann/phpunit-mock-objects/zipball/78ad28713e7e3a96c7597d1e24f4a393dff7d6b4",
+                "reference": "78ad28713e7e3a96c7597d1e24f4a393dff7d6b4",
                 "shasum": ""
             },
             "require": {
@@ -1149,7 +1149,7 @@
                 "mock",
                 "xunit"
             ],
-            "time": "2017-06-30 08:15:21"
+            "time": "2017-07-27 05:58:19"
         },
         {
             "name": "sebastian/code-unit-reverse-lookup",

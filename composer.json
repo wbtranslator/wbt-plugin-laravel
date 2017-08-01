@@ -11,7 +11,7 @@
   ],
   "require": {
     "php": "^7",
-    "wbtranslator/wbt-sdk-php": "dev-master"
+    "wbtranslator/wbt-sdk-php": "dev-sdk"
   },
   "repositories": [
     {
@@ -25,12 +25,7 @@
   },
   "autoload": {
     "psr-4": {
-      "WBT\\PluginLaravel\\": "src/"
-    }
-  },
-  "autoload-dev": {
-    "psr-4": {
-      "WBT\\PluginLaravelTests\\": "tests/src/"
+      "WBTranslator\\PluginLaravel\\": "src/"
     }
   }
 }
