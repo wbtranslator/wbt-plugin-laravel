@@ -1,14 +1,17 @@
 <?php
 
-namespace WBT\PluginLaravel\Models;
+namespace WBTranslator\PluginLaravel\Models;
 
-use WebTranslator\Collection;
+use WBTranslator as WBTranslatorSdk;
 
+/**
+ * Class AbstractionImport
+ *
+ * @package WBTranslator\PluginLaravel
+ */
 class AbstractionImport extends AbstractionBase
 {
-    const GROUP_DELIMITER = '::';
-
-    public function import(Collection $translations)
+    public function saveAbstractions(WBTranslatorSdk\Collection $translations)
     {
         foreach ($this->toArray($translations) as $directory => $files) {
             if (!file_exists($directory)) {
@@ -40,7 +43,7 @@ class AbstractionImport extends AbstractionBase
         return $content;
     }
 
-    private function toArray(Collection $translations) :array
+    private function toArray(WBTranslatorSdk\Collection $translations) :array
     {
         $array = [];
 
@@ -48,7 +51,7 @@ class AbstractionImport extends AbstractionBase
             $directory = $this->getPath($translation->getLanguage(), $translation->getGroup());
             $file = $this->getFile($translation->getGroup());
 
-            array_set($array[$directory][$file], $translation->getAbstractName(), $translation->getTranslation());
+            self::arraySet($array[$directory][$file], $translation->getAbstractName(), $translation->getTranslation());
         }
 
         return $array;
@@ -67,6 +70,6 @@ class AbstractionImport extends AbstractionBase
     {
         $alterGroup = explode(self::GROUP_DELIMITER, $group);
 
-        return array_last($alterGroup) . '.php';
+        return self::arrayLast($alterGroup) . '.php';
     }
 }

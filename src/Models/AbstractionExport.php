@@ -1,24 +1,28 @@
 <?php
 
-namespace WBT\PluginLaravel\Models;
+namespace WBTranslator\PluginLaravel\Models;
 
-use WebTranslator\Collection;
-use WebTranslator\Translation;
+use WBTranslator as WBTranslatorSdk;
 
+/**
+ * Class AbstractionExport
+ *
+ * @package WBTranslator\PluginLaravel
+ */
 class AbstractionExport extends AbstractionBase
 {
-    public function export() :Collection
+    public function abstractions(): WBTranslatorSdk\Collection
     {
-        $collection = new Collection();
+        $collection = new WBTranslatorSdk\Collection;
 
         foreach ($this->getDataFromFile() as $group => $abstractNames) {
-            foreach ((array_dot($abstractNames)) as $abstractName => $originalValue) {
+            foreach ((self::arrayDot($abstractNames)) as $abstractName => $originalValue) {
                 if (!$abstractName) {
                     continue;
                 }
 
-                $translation = new Translation();
-                $translation->setGroup($group);
+                $translation = new WBTranslatorSdk\Translation;
+                $translation->setGroup($group ?? '');
                 $translation->setAbstractName($abstractName);
                 $translation->setOriginalValue(!empty($originalValue) ? (string)$originalValue : '');
 
@@ -28,8 +32,8 @@ class AbstractionExport extends AbstractionBase
 
         return $collection;
     }
-
-    private function getDataFromFile(): array
+    
+    protected function getDataFromFile(): array
     {
         $abstractions = [];
 
@@ -48,8 +52,8 @@ class AbstractionExport extends AbstractionBase
         return $abstractions;
     }
 
-    private function getGroup(string $path): string
+    protected function getGroup(string $path): string
     {
-        return str_replace([DIRECTORY_SEPARATOR, '.php'], ['::', ''], $path);
+        return str_replace([DIRECTORY_SEPARATOR, '.php'], [self::GROUP_DELIMITER, ''], $path);
     }
 }

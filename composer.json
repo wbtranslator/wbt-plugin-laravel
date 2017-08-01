@@ -25,12 +25,7 @@
   },
   "autoload": {
     "psr-4": {
-      "WBT\\PluginLaravel\\": "src/"
-    }
-  },
-  "autoload-dev": {
-    "psr-4": {
-      "WBT\\PluginLaravelTests\\": "tests/src/"
+      "WBTranslator\\PluginLaravel\\": "src/"
     }
   }
 }
