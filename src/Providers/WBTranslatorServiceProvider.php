@@ -5,6 +5,7 @@ namespace WBTranslator\PluginLaravel\Providers;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\ServiceProvider;
 use WBTranslator\PluginLaravel\Console\Commands\AbstractionsExport;
+use WBTranslator\PluginLaravel\Console\Commands\AbstractionsImport;
 
 /**
  * Class WBTranslatorServiceProvider
@@ -21,7 +22,8 @@ class WBTranslatorServiceProvider extends ServiceProvider
         ];
 
         $this->commands([
-            AbstractionsExport::class
+            AbstractionsExport::class,
+            AbstractionsImport::class
         ]);
 
         $this->publishes($paths, 'config');
