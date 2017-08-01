@@ -23,21 +23,21 @@ class AbstractionImport extends AbstractionBase
         }
     }
 
-    private function toString(array $array, string $glue) :string
+    private function toString(array $translations, string $glue) :string
     {
-        $ret = '';
+        $content = '';
 
-        foreach ($array as $key => $value) {
-            if (is_array($value)) {
-                $ret .= '"' . $key . '" => [' . $this->toString($value, $glue) . ']' . $glue;
+        foreach ($translations as $originalValue => $translation) {
+            if (is_array($translation)) {
+                $content .= '"' . $originalValue . '" => [' . $this->toString($translation, $glue) . ']' . $glue;
             } else {
-                $ret .= '"' . $key . '" => "' . $value . '"' . $glue;
+                $content .= '"' . $originalValue . '" => "' . $translation . '"' . $glue;
             }
         }
 
-        $ret = substr($ret, 0, 0 - strlen($glue));
+        $content = substr($content, 0, 0 - strlen($glue));
 
-        return $ret;
+        return $content;
     }
 
     private function toArray(Collection $translations) :array
