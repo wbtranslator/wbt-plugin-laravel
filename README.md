@@ -1,33 +1,27 @@
 # WBTranslator Plugin Laravel
-
-### Copy plugin folder Translator to PROJECT_PATH/app 
+### Installation by composer
 ```
-$ cp Translator PROJECT_PATH/app/
+composer require wbtranslator/wbt-plugin-laravel
 ```
-
+### Add TranslatorServiceProvider to PROJECT_PATH/config/app.php in section 'providers'
+```
+WBTranslator\PluginLaravel\Providers\WBTranslatorServiceProvider::class 
+```
 ### Set folders permissions with write access from server.
 ```sh
 $ chmod -R 775 ./resources/lang/
 ```
-
-## Add TranslatorServiceProvider to PROJECT_PATH/config/app.php in section 'providers'
-```
-WBT\LaravelPlugin\Providers\WBTranslatorServiceProvider::class 
-```
-## Get API KEY
+### Get API KEY
 Put API KEY to .env file
 
 Example: WBT_API_KEY=API_KEY
 
-## Use web interfase
+### Use web interfase
+#### Send abstractions to WBTranslator
 ```	
-http://PROJECT_URL/translator
+http://PROJECT_URL/wbt/export 
 ```
-
-## API methods
+#### Get abstractions from WBTranslator and save them to lang directory
 ```	
-http://PROJECT_URL/translator/api/export
-```
-```
-http://PROJECT_URL/translator/api/import
+http://PROJECT_URL/wbt/import
 ```
