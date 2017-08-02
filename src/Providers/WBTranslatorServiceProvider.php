@@ -22,7 +22,6 @@ class WBTranslatorServiceProvider extends ServiceProvider
         ];
 
         $this->commands([
-//            AbstractionsExport::class,
             Abstractions::class
         ]);
 
