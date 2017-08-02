@@ -5,21 +5,21 @@ namespace WBTranslator\PluginLaravel\Console\Commands;
 use Illuminate\Console\Command;
 use WBTranslator\PluginLaravel\Http\Controllers\WBTranslatorController;
 
-class AbstractionsImport extends Command
+class Abstractions extends Command
 {
     /**
      * The name and signature of the console command.
      *
      * @var string
      */
-    protected $signature = 'abstractions:import';
+    protected $signature = 'wbt:abstractions {type : import or export}';
 
     /**
      * The console command description.
      *
      * @var string
      */
-    protected $description = 'Command description';
+    protected $description = 'Get abstractions from WBTranslator and save them to lang directory';
 
     protected $controller;
 
@@ -43,11 +43,18 @@ class AbstractionsImport extends Command
     public function handle()
     {
         $this->info('Process ... ');
-//        $bar = $this->output->createProgressBar();
 
-        $response = $this->controller->import();
 
-//        $bar->finish();
-        $this->info($response->getContent());
+        $type = $this->argument('type');
+
+        if ($type === 'import') {
+            $response = $this->controller->import();
+        }
+
+        if ($type === 'export') {
+            $response = $this->controller->import();
+        }
+
+        $this->info($response ?? 'Please enter correct type');
     }
 }

@@ -12,14 +12,14 @@ class AbstractionsExport extends Command
      *
      * @var string
      */
-    protected $signature = 'abstractions:export';
+    protected $signature = 'wbt:abstractions {type}';
 
     /**
      * The console command description.
      *
      * @var string
      */
-    protected $description = 'Command description';
+    protected $description = 'Send abstractions to WBTranslator';
 
     protected $controller;
 
@@ -42,6 +42,7 @@ class AbstractionsExport extends Command
      */
     public function handle()
     {
+
         $this->info('Process ... ');
 //        $bar = $this->output->createProgressBar();
 
