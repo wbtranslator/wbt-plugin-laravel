@@ -52,7 +52,7 @@ class Abstractions extends Command
         }
 
         if ($type === 'export') {
-            $response = $this->controller->import();
+            $response = $this->controller->export();
         }
 
         $this->info($response ?? 'Please enter correct type');
