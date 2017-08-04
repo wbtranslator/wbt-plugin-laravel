@@ -25,6 +25,10 @@ class WBTranslatorController extends BaseController
     public function export()
     {
         $export = new AbstractionExport();
+        print_r($export->langPaths());
+        
+        return $this->responseSuccess();
+        /*
         $data = $export->abstractions();
     
         try {
@@ -32,7 +36,7 @@ class WBTranslatorController extends BaseController
             return $this->responseSuccess(null, count($result));
         } catch (\Exception $e) {
             return $this->responseError();
-        }
+        }*/
     }
 
     public function import()

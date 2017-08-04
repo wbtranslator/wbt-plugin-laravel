@@ -11,7 +11,7 @@ use Illuminate\Filesystem\Filesystem;
  */
 abstract class AbstractionBase
 {
-    const GROUP_DELIMITER = '::';
+    const DEFAULT_GROUP_DELIMITER = '::';
     
     /**
      * @var array
@@ -22,6 +22,11 @@ abstract class AbstractionBase
      * @var string
      */
     protected $locale;
+    
+    /**
+     * @var string
+     */
+    protected $groupDelimiter;
     
     /**
      * @var Filesystem
@@ -40,15 +45,22 @@ abstract class AbstractionBase
     {
         $config = config('wbt');
         
-        $this->locale = null !== $config->locale ?? app()->getLocale();
+        $this->locale = $config['locale'] ?? app()->getLocale();
     
         array_push($this->langPaths, app()->langPath());
-        if (!empty($config->lang_paths)) {
-            $this->langPaths = array_merge($this->langPaths, $config->lang_paths);
+        if (!empty($config['lang_paths'])) {
+            $this->langPaths = array_merge($this->langPaths, $config['lang_paths']);
         }
-        
+    
+        $this->groupDelimiter = $config['group_delimiter'] ?? self::DEFAULT_GROUP_DELIMITER;
+    
         $this->filesystem = new Filesystem;
         $this->localeDirectories = $this->localeDirectories();
+    }
+    
+    public function langPaths(): array
+    {
+        return $this->langPaths;
     }
     
     /**

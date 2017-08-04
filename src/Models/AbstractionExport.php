@@ -14,46 +14,50 @@ class AbstractionExport extends AbstractionBase
     public function abstractions(): WBTranslatorSdk\Collection
     {
         $collection = new WBTranslatorSdk\Collection;
-
-        foreach ($this->getDataFromFile() as $group => $abstractNames) {
-            foreach ((self::arrayDot($abstractNames)) as $abstractName => $originalValue) {
-                if (!$abstractName) {
-                    continue;
+    
+        foreach ($this->localeDirectories as $localeDirectory) {
+            $rootGroup = $this->createGroup($localeDirectory);
+    
+            foreach ($this->filesystem->allFiles($localeDirectory) as $file) {
+                $relativePath = $file->getRelativePathname();
+                $absolutePath = $localeDirectory . $relativePath;
+                $data = $this->filesystem->getRequire($absolutePath);
+        
+                if (file_exists($absolutePath)) {
+                    if (!empty($data) && is_array($data)) {
+                        $group = $this->createGroup($relativePath, $rootGroup);
+    
+                        foreach ((self::arrayDot($data)) as $abstractName => $originalValue) {
+                            if (!$abstractName) {
+                                continue;
+                            }
+        
+                            $translation = new WBTranslatorSdk\Translation;
+                            $translation->setAbstractName($abstractName);
+                            $translation->setOriginalValue(!empty($originalValue) ? (string)$originalValue : '');
+                            $translation->addGroup($group);
+                            
+                            $collection->add($translation);
+                        }
+                    }
                 }
-
-                $translation = new WBTranslatorSdk\Translation;
-                $translation->setGroup($group ?? '');
-                $translation->setAbstractName($abstractName);
-                $translation->setOriginalValue(!empty($originalValue) ? (string)$originalValue : '');
-
-                $collection->add($translation);
             }
         }
-
+ 
         return $collection;
     }
-    
-    protected function getDataFromFile(): array
+
+    protected function createGroup(string $path, $parent = null)
     {
-        $abstractions = [];
-
-        foreach ($this->filesystem->allFiles($this->localeDirectory) as $file) {
-            $relativePath = $file->getRelativePathname();
-            $absolutePath = $this->localeDirectory . $relativePath;
-            $data = $this->filesystem->getRequire($absolutePath);
-
-            if (file_exists($absolutePath)) {
-                if (!empty($data) && is_array($data)) {
-                    $abstractions[$this->getGroup($relativePath)] = $data;
-                }
-            }
+        $name = str_replace([DIRECTORY_SEPARATOR, '.php'], [$this->groupDelimiter, ''], $path);
+        
+        $group = new WBTranslatorSdk\Group();
+        $group->setName($name);
+        
+        if (null !== $parent) {
+            $group->addParent($parent);
         }
-
-        return $abstractions;
-    }
-
-    protected function getGroup(string $path): string
-    {
-        return str_replace([DIRECTORY_SEPARATOR, '.php'], [self::GROUP_DELIMITER, ''], $path);
+        
+        return $group;
     }
 }
