@@ -18,10 +18,14 @@ abstract class AbstractionBase
      */
     protected $langPaths = [];
     
+    protected $basePath;
+    
     /**
      * @var string
      */
     protected $locale;
+    
+    protected $config;
     
     /**
      * @var string
@@ -43,16 +47,15 @@ abstract class AbstractionBase
      */
     public function __construct()
     {
-        $config = config('wbt');
+        $this->config = config('wbt');
         
         $this->locale = $config['locale'] ?? app()->getLocale();
     
-        array_push($this->langPaths, app()->langPath());
-        if (!empty($config['lang_paths'])) {
-            $this->langPaths = array_merge($this->langPaths, $config['lang_paths']);
-        }
+        $this->basePath = app()->basePath();
+        
+        $this->langPaths = $this->langPaths();
     
-        $this->groupDelimiter = $config['group_delimiter'] ?? self::DEFAULT_GROUP_DELIMITER;
+        $this->groupDelimiter = $this->config['group_delimiter'] ?? self::DEFAULT_GROUP_DELIMITER;
     
         $this->filesystem = new Filesystem;
         $this->localeDirectories = $this->localeDirectories();
@@ -60,6 +63,16 @@ abstract class AbstractionBase
     
     public function langPaths(): array
     {
+        //array_push($this->langPaths, app()->langPath());
+        
+        if (!empty($this->config['lang_paths'])) {
+            $this->langPaths = array_merge($this->langPaths, $this->config['lang_paths']);
+        
+            $this->langPaths = array_map(function($el) {
+                return rtrim($el, DIRECTORY_SEPARATOR) . DIRECTORY_SEPARATOR;
+            }, $this->langPaths);
+        }
+        
         return $this->langPaths;
     }
     

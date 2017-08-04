@@ -19,27 +19,25 @@ class WBTranslatorController extends BaseController
     
     public function __construct()
     {
-        $this->sdk = new WBTranslatorSdk(config('wbt.api_key'));
+        $client = new \GuzzleHttp\Client([
+            'base_uri' => 'http://192.168.88.149:8080/api/project/'
+        ]);
+        
+        $this->sdk = new WBTranslatorSdk(config('wbt.api_key'), $client);
     }
 
     public function export()
     {
         $export = new AbstractionExport();
-        print_r($export->langPaths());
-        
-        return $this->responseSuccess();
-        /*
         $data = $export->abstractions();
-    
-        try {
-            $result = $this->sdk->translations()->create($data);
-            return $this->responseSuccess(null, count($result));
-        } catch (\Exception $e) {
-            return $this->responseError();
-        }*/
+        
+        $result = $this->sdk->translations()->create($data);
+        
+        return $this->responseSuccess($result);
+
     }
 
-    public function import()
+    /*public function import()
     {
         try {
             $translations = $this->sdk->translations()->all();
@@ -52,7 +50,7 @@ class WBTranslatorController extends BaseController
 
         return $this->responseSuccess();
     }
-
+*/
     private function responseError($message = null, $code = 400)
     {
         return response()->json(['status' => 'error', 'message' => $message], $code);

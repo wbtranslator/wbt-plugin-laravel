@@ -3,9 +3,10 @@
 return [
     'api_key' => env('WBT_API_KEY'),
     
-    'locale' => 'ge',
+    'locale' => 'en',
     
     'lang_paths' => [
+        '/resources/lang',
         '/vendor/my_plugin/lang',
         '/storage/lang/',
     ],

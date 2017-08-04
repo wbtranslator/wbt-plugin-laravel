@@ -820,7 +820,7 @@
                 "testing",
                 "xunit"
             ],
-            "time": "2017-08-03T14:42:12+00:00"
+            "time": "2017-08-03 14:42:12"
         },
         {
             "name": "phpunit/php-file-iterator",
@@ -1006,7 +1006,7 @@
             "keywords": [
                 "tokenizer"
             ],
-            "time": "2017-08-03T14:21:49+00:00"
+            "time": "2017-08-03 14:21:49"
         },
         {
             "name": "phpunit/phpunit",
@@ -1090,7 +1090,7 @@
                 "testing",
                 "xunit"
             ],
-            "time": "2017-08-04T05:51:43+00:00"
+            "time": "2017-08-04 05:51:43"
         },
         {
             "name": "phpunit/phpunit-mock-objects",
@@ -1149,7 +1149,7 @@
                 "mock",
                 "xunit"
             ],
-            "time": "2017-08-03T14:08:16+00:00"
+            "time": "2017-08-03 14:08:16"
         },
         {
             "name": "sebastian/code-unit-reverse-lookup",
@@ -1258,7 +1258,7 @@
                 "compare",
                 "equality"
             ],
-            "time": "2017-08-03T07:14:59+00:00"
+            "time": "2017-08-03 07:14:59"
         },
         {
             "name": "sebastian/diff",
@@ -1310,7 +1310,7 @@
             "keywords": [
                 "diff"
             ],
-            "time": "2017-08-03T08:09:46+00:00"
+            "time": "2017-08-03 08:09:46"
         },
         {
             "name": "sebastian/environment",
@@ -1525,7 +1525,7 @@
             ],
             "description": "Traverses array structures and object graphs to enumerate all referenced objects",
             "homepage": "https://github.com/sebastianbergmann/object-enumerator/",
-            "time": "2017-08-03T12:35:26+00:00"
+            "time": "2017-08-03 12:35:26"
         },
         {
             "name": "sebastian/object-reflector",
