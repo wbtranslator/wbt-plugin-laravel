@@ -14,7 +14,7 @@ use WBTranslator\PluginLaravel\Console\Commands\AbstractionsImport;
  */
 class WBTranslatorServiceProvider extends ServiceProvider
 {
-
+    
     public function boot()
     {
         $paths = [
@@ -27,18 +27,18 @@ class WBTranslatorServiceProvider extends ServiceProvider
         ]);
 
         $this->publishes($paths, 'config');
-
-        Route::group(['prefix' => 'wbt', 'namespace' => 'WBT\PluginLaravel\Http\Controllers'], function () {
+        
+        Route::group(['prefix' => 'wbt', 'namespace' => 'WBTranslator\PluginLaravel\Http\Controllers'], function () {
                 Route::get('export', 'WBTranslatorController@export');
                 Route::get('import', 'WBTranslatorController@import');
         });
     }
-
+    
     public function register()
     {
         $this->mergeConfigFrom($this->getConfigPath(), 'wbt');
     }
-
+    
     private function getConfigPath()
     {
         return realpath(__DIR__ . '/../../') . '/config/wbt.php';

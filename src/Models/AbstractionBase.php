@@ -11,17 +11,26 @@ use Illuminate\Filesystem\Filesystem;
  */
 abstract class AbstractionBase
 {
-    const GROUP_DELIMITER = '::';
+    const DEFAULT_GROUP_DELIMITER = '::';
     
     /**
-     * @var
+     * @var array
      */
-    protected $langPath;
+    protected $langPaths = [];
+    
+    protected $basePath;
     
     /**
-     * @var
+     * @var string
      */
     protected $locale;
+    
+    protected $config;
+    
+    /**
+     * @var string
+     */
+    protected $groupDelimiter;
     
     /**
      * @var Filesystem
@@ -29,43 +38,119 @@ abstract class AbstractionBase
     protected $filesystem;
     
     /**
-     * @var string
+     * @var array
      */
-    protected $localeDirectory;
-    
-    protected $sdk;
+    protected $localeDirectories = [];
     
     /**
      * AbstractionBase constructor.
-     *
-     * @param string|null $locale
      */
-    public function __construct(string $locale = null)
+    public function __construct()
     {
-        $this->locale = app()->getLocale();
-        $this->langPath = app()->langPath();
+        $this->config = config('wbt');
+        
+        $this->locale = $config['locale'] ?? app()->getLocale();
+    
+        $this->basePath = app()->basePath();
+        
+        $this->langPaths = $this->langPaths();
+    
+        $this->groupDelimiter = $this->config['group_delimiter'] ?? self::DEFAULT_GROUP_DELIMITER;
+    
         $this->filesystem = new Filesystem;
-        $this->localeDirectory = $this->getLocaleDirectory($locale);
-    }
-
-    protected function getLocaleDirectory(string $locale = null): string
-    {
-        return rtrim($this->langPath, DIRECTORY_SEPARATOR) . DIRECTORY_SEPARATOR .
-            ($locale ?: $this->locale) . DIRECTORY_SEPARATOR;
+        $this->localeDirectories = $this->localeDirectories();
     }
     
-    public static function arrayDot($array)
+    public function langPaths(): array
     {
-        return \Arr::dot($array);
+        //array_push($this->langPaths, app()->langPath());
+        
+        if (!empty($this->config['lang_paths'])) {
+            $this->langPaths = array_merge($this->langPaths, $this->config['lang_paths']);
+        
+            $this->langPaths = array_map(function($el) {
+                return rtrim($el, DIRECTORY_SEPARATOR) . DIRECTORY_SEPARATOR;
+            }, $this->langPaths);
+        }
+        
+        return $this->langPaths;
     }
     
+    /**
+     * @return array
+     */
+    public function localeDirectories(): array
+    {
+        $locale = $this->locale;
+        
+        return array_map(function($el) use ($locale) {
+            return rtrim($el, DIRECTORY_SEPARATOR) . DIRECTORY_SEPARATOR . $locale . DIRECTORY_SEPARATOR;
+        }, $this->langPaths);
+    }
+    
+    /**
+     * Flatten a multi-dimensional associative array with dots.
+     *
+     * @param array $array
+     * @param string $prepend
+     * @return array
+     */
+    public static function arrayDot($array, $prepend = '')
+    {
+        $results = [];
+        
+        foreach ($array as $key => $value) {
+            if (is_array($value) && ! empty($value)) {
+                $results = array_merge($results, static::arrayDot($value, $prepend . $key . '.'));
+            } else {
+                $results[$prepend . $key] = $value;
+            }
+        }
+        
+        return $results;
+    }
+    
+    /**
+     * Set an array item to a given value using "dot" notation.
+     *
+     * If no key is given to the method, the entire array will be replaced.
+     *
+     * @param array $array
+     * @param string $key
+     * @param mixed $value
+     * @return array
+     */
     public static function arraySet(&$array, $key, $value)
     {
-        return \Arr::set($array, $key, $value);
+        if (is_null($key)) {
+            return $array = $value;
+        }
+        
+        $keys = explode('.', $key);
+        
+        while (count($keys) > 1) {
+            $key = array_shift($keys);
+            
+            if (!isset($array[$key]) || !is_array($array[$key])) {
+                $array[$key] = [];
+            }
+            
+            $array = &$array[$key];
+        }
+        
+        $array[array_shift($keys)] = $value;
+        
+        return $array;
     }
     
+    /**
+     * Return the last element in an array.
+     *
+     * @param  array  $array
+     * @return mixed
+     */
     public static function arrayLast($array)
     {
-        return \Arr::last($array);
+        return empty($array) ? null : end($array);
     }
 }
