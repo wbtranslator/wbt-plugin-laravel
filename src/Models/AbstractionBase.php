@@ -2,7 +2,7 @@
 
 namespace WBTranslator\PluginLaravel\Models;
 
-use Illuminate\Filesystem\Filesystem;
+use WBTranslator\PluginLaravel\Filesystem;
 
 /**
  * Class AbstractionBase
