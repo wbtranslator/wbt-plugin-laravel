@@ -3,7 +3,7 @@
 namespace WBTranslator\PluginLaravel\Console\Commands;
 
 use Illuminate\Console\Command;
-use WBTranslator\PluginLaravel\Http\Controllers\WBTranslatorController;
+use WBTranslator\PluginLaravel\Models\WBTranslatorAbstractionsModel;
 
 class AbstractionsImport extends Command
 {
@@ -19,21 +19,7 @@ class AbstractionsImport extends Command
      *
      * @var string
      */
-    protected $description = 'Get abstractions from WBTranslator and save them to lang directory';
-
-    protected $controller;
-
-    /**
-     * Create a new command instance.
-     *
-     * @return void
-     */
-    public function __construct()
-    {
-        parent::__construct();
-
-        $this->controller = new WBTranslatorController();
-    }
+    protected $description = 'Get abstractions from WBTranslator and save them to lang directory.';
 
     /**
      * Execute the console command.
@@ -43,7 +29,10 @@ class AbstractionsImport extends Command
     public function handle()
     {
         $this->info('Process ... ');
-        $response = $this->controller->import();
-        $this->info($response);
+    
+        $model = new WBTranslatorAbstractionsModel;
+        $result = $model->import();
+        
+        $this->info($result);
     }
 }

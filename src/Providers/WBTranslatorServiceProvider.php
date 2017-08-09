@@ -2,7 +2,6 @@
 
 namespace WBTranslator\PluginLaravel\Providers;
 
-use Illuminate\Support\Facades\Route;
 use Illuminate\Support\ServiceProvider;
 use WBTranslator\PluginLaravel\Console\Commands\AbstractionsExport;
 use WBTranslator\PluginLaravel\Console\Commands\AbstractionsImport;
@@ -27,11 +26,6 @@ class WBTranslatorServiceProvider extends ServiceProvider
         ]);
 
         $this->publishes($paths, 'config');
-        
-        Route::group(['prefix' => 'wbt', 'namespace' => 'WBTranslator\PluginLaravel\Http\Controllers'], function () {
-                Route::get('export', 'WBTranslatorController@export');
-                Route::get('import', 'WBTranslatorController@import');
-        });
     }
     
     public function register()

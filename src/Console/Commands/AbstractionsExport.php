@@ -1,8 +1,9 @@
 <?php
+
 namespace WBTranslator\PluginLaravel\Console\Commands;
 
 use Illuminate\Console\Command;
-use WBTranslator\PluginLaravel\Http\Controllers\WBTranslatorController;
+use WBTranslator\PluginLaravel\Models\WBTranslatorAbstractionsModel;
 
 class AbstractionsExport extends Command
 {
@@ -12,23 +13,14 @@ class AbstractionsExport extends Command
      * @var string
      */
     protected $signature = 'wbt:abstractions:export';
+    
     /**
      * The console command description.
      *
      * @var string
      */
     protected $description = 'Send abstractions to WBTranslator';
-    protected $controller;
-    /**
-     * Create a new command instance.
-     *
-     * @return void
-     */
-    public function __construct()
-    {
-        parent::__construct();
-        $this->controller = new WBTranslatorController();
-    }
+    
     /**
      * Execute the console command.
      *
@@ -37,7 +29,10 @@ class AbstractionsExport extends Command
     public function handle()
     {
         $this->info('Process ... ');
-        $response = $this->controller->export();
-        $this->info($response->getContent());
+    
+        $model = new WBTranslatorAbstractionsModel;
+        $result = $model->export();
+        
+        $this->info($result);
     }
 }
