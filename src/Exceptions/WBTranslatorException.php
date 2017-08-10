@@ -1,6 +1,6 @@
 <?php
 
-namespace WBTranslatorController\PluginLaravel\Exceptions;
+namespace WBTranslator\PluginLaravel\Exceptions;
 
 /**
  * Class WBTranslatorException
