@@ -10,7 +10,7 @@
   ],
   "require": {
     "php": "^7",
-    "wbtranslator/wbt-sdk-php": "dev-groups"
+    "wbtranslator/wbt-sdk-php": "dev-filesystem"
   },
   "repositories": [
     {

@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#composer-lock-the-lock-file",
         "This file is @generated automatically"
     ],
-    "content-hash": "d9cbd5e8382fb9c27bef70254a2575f9",
+    "content-hash": "8c3a3d93051a71caff1715d6d5899044",
     "packages": [
         {
             "name": "doctrine/collections",
@@ -306,16 +306,16 @@
         },
         {
             "name": "wbtranslator/wbt-sdk-php",
-            "version": "dev-groups",
+            "version": "dev-filesystem",
             "source": {
                 "type": "git",
                 "url": "https://github.com/wbtranslator/wbt-sdk-php.git",
-                "reference": "107ea24d0fb3ec1575791e471042e616e7b329e1"
+                "reference": "8d36de5898ffbb4d85d5fc49cd35f114bf6f927a"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/wbtranslator/wbt-sdk-php/zipball/107ea24d0fb3ec1575791e471042e616e7b329e1",
-                "reference": "107ea24d0fb3ec1575791e471042e616e7b329e1",
+                "url": "https://api.github.com/repos/wbtranslator/wbt-sdk-php/zipball/8d36de5898ffbb4d85d5fc49cd35f114bf6f927a",
+                "reference": "8d36de5898ffbb4d85d5fc49cd35f114bf6f927a",
                 "shasum": ""
             },
             "require": {
@@ -344,10 +344,10 @@
                 }
             ],
             "support": {
-                "source": "https://github.com/wbtranslator/wbt-sdk-php/tree/groups",
+                "source": "https://github.com/wbtranslator/wbt-sdk-php/tree/filesystem",
                 "issues": "https://github.com/wbtranslator/wbt-sdk-php/issues"
             },
-            "time": "2017-08-07 08:20:07"
+            "time": "2017-08-09 15:13:02"
         }
     ],
     "packages-dev": [

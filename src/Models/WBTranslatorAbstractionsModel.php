@@ -2,7 +2,7 @@
 
 namespace WBTranslator\PluginLaravel\Models;
 
-use WBTranslator as WBTranslatorSdk;
+use WBTranslator\Sdk;
 
 /**
  * Class WBTranslatorAbstractionsModel
@@ -18,25 +18,34 @@ class WBTranslatorAbstractionsModel
         $client = new \GuzzleHttp\Client([
             'base_uri' => 'http://192.168.88.149:8080/api/project/'
         ]);
+    
+        $config = new Sdk\Config;
+        $config->setApiKey(config('wbt.api_key'));
+        $config->setClient($client ?? null);
+        $config->setBasePath(app()->basePath());
+        $config->setBaseLocale(app()->getLocale());
+        $config->setLangResourcePaths([
+            app()->langPath()
+        ]);
         
-        $this->sdk = new WBTranslatorSdk(config('wbt.api_key'), $client);
+        $this->sdk = new Sdk\WBTranslatorSdk($config);
     }
     
     public function export()
     {
-        $collection = new WBTranslatorSdk\Collection;
-
-        $result = $this->sdk->translations()->create($collection);
+        $collection = $this->sdk->locator()->scan();
         
-        return $result;
+        if ($collection) {
+            return $this->sdk->translations()->create($collection);
+        }
     }
     
     public function import()
     {
-        $this->info('Process ... ');
-        
         $translations = $this->sdk->translations()->all();
-        
-        return $translations;
+    
+        if ($translations) {
+            $this->sdk->locator()->put($translations);
+        }
     }
 }
