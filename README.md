@@ -11,17 +11,16 @@ WBTranslator\PluginLaravel\Providers\WBTranslatorServiceProvider::class
 ```sh
 $ chmod -R 775 ./resources/lang/
 ```
-### Get API KEY
+### Set API KEY
 Put API KEY to .env file
 
 Example: WBT_API_KEY=API_KEY
 
-### Use web interfase
-#### Send abstractions to WBTranslator
+### Send abstractions to WBTranslator
 ```	
-http://PROJECT_URL/wbt/export 
+artisan wbt:abstractions:export 
 ```
-#### Get abstractions from WBTranslator and save them to lang directory
+### Get abstractions from WBTranslator and save them to lang directory
 ```	
-http://PROJECT_URL/wbt/import
+artisan wbt:abstractions:import
 ```
