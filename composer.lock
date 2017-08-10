@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#composer-lock-the-lock-file",
         "This file is @generated automatically"
     ],
-    "content-hash": "8c3a3d93051a71caff1715d6d5899044",
+    "content-hash": "f39a7acc9c30cbf603e174771a85e77c",
     "packages": [
         {
             "name": "doctrine/collections",
@@ -306,16 +306,16 @@
         },
         {
             "name": "wbtranslator/wbt-sdk-php",
-            "version": "dev-filesystem",
+            "version": "dev-development",
             "source": {
                 "type": "git",
                 "url": "https://github.com/wbtranslator/wbt-sdk-php.git",
-                "reference": "8d36de5898ffbb4d85d5fc49cd35f114bf6f927a"
+                "reference": "24c126f91d9d89c9920f08e866f61492cd107dca"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/wbtranslator/wbt-sdk-php/zipball/8d36de5898ffbb4d85d5fc49cd35f114bf6f927a",
-                "reference": "8d36de5898ffbb4d85d5fc49cd35f114bf6f927a",
+                "url": "https://api.github.com/repos/wbtranslator/wbt-sdk-php/zipball/24c126f91d9d89c9920f08e866f61492cd107dca",
+                "reference": "24c126f91d9d89c9920f08e866f61492cd107dca",
                 "shasum": ""
             },
             "require": {
@@ -329,25 +329,17 @@
             "type": "library",
             "autoload": {
                 "psr-4": {
-                    "WBTranslator\\": "src/"
+                    "WBTranslator\\Sdk\\": "src/"
                 }
             },
-            "autoload-dev": {
-                "psr-4": {
-                    "WBTranslator\\Tests\\": "tests/"
-                }
-            },
+            "notification-url": "https://packagist.org/downloads/",
             "authors": [
                 {
                     "name": "Sergiy Tsybulko",
                     "email": "sergiy@futurenet.club"
                 }
             ],
-            "support": {
-                "source": "https://github.com/wbtranslator/wbt-sdk-php/tree/filesystem",
-                "issues": "https://github.com/wbtranslator/wbt-sdk-php/issues"
-            },
-            "time": "2017-08-09 15:13:02"
+            "time": "2017-08-10 11:16:23"
         }
     ],
     "packages-dev": [

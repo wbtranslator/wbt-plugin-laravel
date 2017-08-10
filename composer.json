@@ -1,7 +1,8 @@
 {
   "name": "wbtranslator/wbt-plugin-laravel",
   "description": "Laravel plugin for WBTranslator",
-  "license": "MIT",
+  "type": "library",
+  "version": "0.1.0",
   "authors": [
     {
       "name": "Sergiy Tsybulko",
@@ -10,14 +11,8 @@
   ],
   "require": {
     "php": "^7",
-    "wbtranslator/wbt-sdk-php": "dev-filesystem"
+    "wbtranslator/wbt-sdk-php": "dev-development"
   },
-  "repositories": [
-    {
-      "type": "vcs",
-      "url": "https://github.com/wbtranslator/wbt-sdk-php.git"
-    }
-  ],
   "require-dev": {
     "phpunit/phpunit": "^6"
   },
