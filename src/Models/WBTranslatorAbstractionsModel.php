@@ -12,10 +12,21 @@ use WBTranslator\PluginLaravel\Exceptions\WBTranslatorException;
  */
 class WBTranslatorAbstractionsModel
 {
+    /**
+     * @var Sdk\WBTranslatorSdk
+     */
     protected $sdk;
     
+    /**
+     * @var
+     */
     protected $config;
     
+    /**
+     * WBTranslatorAbstractionsModel constructor.
+     *
+     * @throws WBTranslatorException
+     */
     public function __construct()
     {
         $this->config = config('wbt');
@@ -24,13 +35,17 @@ class WBTranslatorAbstractionsModel
             throw new WBTranslatorException('Parameter WBT_API_KEY is required', 422);
         }
         
+        // Locale
+        $locale = !empty($this->config['locale']) ? $this->config['locale'] : app()->getLocale();
+    
+        // Resource Lang Paths
+        $langPaths = !empty($this->config['lang_paths']) ? $this->config['lang_paths'] : [];
+        
         $sdkConfig = new Sdk\Config;
         $sdkConfig->setApiKey($this->config['api_key']);
         $sdkConfig->setBasePath(app()->basePath());
-        $sdkConfig->setBaseLocale(!empty($this->config['locale']) ? $this->config['locale'] : app()->getLocale());
-        $sdkConfig->setLangResourcePaths([
-            '/resources/lang'
-        ]);
+        $sdkConfig->setBaseLocale($locale);
+        $sdkConfig->setLangResourcePaths($langPaths);
         
         if (!empty($this->config['group_delimiter'])) {
             $sdkConfig->setGroupDelimiter($this->config['group_delimiter']);
@@ -39,21 +54,7 @@ class WBTranslatorAbstractionsModel
         $this->sdk = new Sdk\WBTranslatorSdk($sdkConfig);
     }
     
-    public function langPaths()
-    {
-        $langPaths = [app()->langPath()];
-
-        if (!empty($this->config['lang_paths'])) {
-            $langPaths = array_merge($langPaths, $this->config['lang_paths']);
-    
-            $langPaths = array_map(function($el) {
-                return rtrim($el, DIRECTORY_SEPARATOR) . DIRECTORY_SEPARATOR;
-            }, $langPaths);
-        }
-        
-        return $langPaths;
-    }
-    
+    // Send abstractions to WBTranslator
     public function export()
     {
         $collection = $this->sdk->locator()->scan();
@@ -61,8 +62,11 @@ class WBTranslatorAbstractionsModel
         if ($collection) {
             return $this->sdk->translations()->create($collection);
         }
+    
+        return null;
     }
     
+    // Get abstractions from WBTranslator and save them to lang directory
     public function import()
     {
         $translations = $this->sdk->translations()->all();
@@ -70,5 +74,7 @@ class WBTranslatorAbstractionsModel
         if ($translations) {
             $this->sdk->locator()->put($translations);
         }
+        
+        return $translations;
     }
 }

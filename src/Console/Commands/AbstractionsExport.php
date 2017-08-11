@@ -33,6 +33,6 @@ class AbstractionsExport extends Command
         $model = new WBTranslatorAbstractionsModel;
         $result = $model->export();
         
-        $this->info($result);
+        $this->info('Send ' . !empty($result) ? count($result) : 0 . ' abstractions to WBTranslator');
     }
 }

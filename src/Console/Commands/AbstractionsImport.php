@@ -33,6 +33,6 @@ class AbstractionsImport extends Command
         $model = new WBTranslatorAbstractionsModel;
         $result = $model->import();
         
-        $this->info($result);
+        $this->info('Get ' . count($result) . ' abstractions from WBTranslator');
     }
 }
