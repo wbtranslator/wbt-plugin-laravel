@@ -39,16 +39,16 @@ class WBTranslatorAbstractionsModel
         $locale = !empty($this->config['locale']) ? $this->config['locale'] : app()->getLocale();
     
         // Resource Lang Paths
-        $langPaths = !empty($this->config['lang_paths']) ? $this->config['lang_paths'] : [];
+        $langPaths = !empty($this->config['paths']) ? $this->config['paths'] : [];
         
         $sdkConfig = new Sdk\Config;
         $sdkConfig->setApiKey($this->config['api_key']);
         $sdkConfig->setBasePath(app()->basePath());
-        $sdkConfig->setBaseLocale($locale);
-        $sdkConfig->setLangResourcePaths($langPaths);
+        $sdkConfig->setLocale($locale);
+        $sdkConfig->setLangPaths($langPaths);
         
-        if (!empty($this->config['group_delimiter'])) {
-            $sdkConfig->setGroupDelimiter($this->config['group_delimiter']);
+        if (!empty($this->config['delimiter'])) {
+            $sdkConfig->setDelimiter($this->config['delimiter']);
         }
         
         $this->sdk = new Sdk\WBTranslatorSdk($sdkConfig);

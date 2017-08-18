@@ -3,7 +3,7 @@
 return [
     'api_key' => env('WBT_API_KEY'),
     
-    'lang_paths' => [
+    'paths' => [
         '/resources/lang',
         //'/vendor/my_plugin/lang',
         //'/storage/lang/',
@@ -11,5 +11,5 @@ return [
     
     //'locale' => 'en',
     
-    //'group_delimiter' => '::',
+    //'delimiter' => '::',
 ];
