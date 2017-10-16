@@ -46,7 +46,13 @@ class WBTranslatorAbstractionsModel
         $sdkConfig->setBasePath(app()->basePath());
         $sdkConfig->setLocale($locale);
         $sdkConfig->setLangPaths($langPaths);
-        
+
+        if (!empty($this->config['api_url'])) {
+            $sdkConfig->setClient(new \GuzzleHttp\Client([
+                'base_uri' => $this->config['api_url']
+            ]));
+        }
+
         if (!empty($this->config['delimiter'])) {
             $sdkConfig->setDelimiter($this->config['delimiter']);
         }
