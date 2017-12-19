@@ -7,8 +7,7 @@ use Illuminate\Console\Command;
 use WBTranslator\Sdk\Interfaces\ConfigInterface;
 use WBTranslator\Sdk\WBTranslatorSdk;
 
-
-class AbstractionsBaseCommand extends Command
+abstract class AbstractionsBaseCommand extends Command
 {
     /** @var WBTranslatorAbstractionsModel  */
     protected $model;
@@ -25,6 +24,8 @@ class AbstractionsBaseCommand extends Command
         $this->model = new WBTranslatorAbstractionsModel();
         $this->sdk = $this->model->sdk();
         $this->sdkConfig = $this->sdk->config();
+
+        parent::__construct();
     }
 
     protected function startInfo($debug)
@@ -36,9 +37,7 @@ class AbstractionsBaseCommand extends Command
             $this->line(sprintf('Delimiter : %s', $this->sdkConfig->getDelimiter()));
             $this->line(sprintf('Locale : %s', $this->sdkConfig->getLocale()));
             $this->line(sprintf('Format : %s', $this->sdkConfig->getFormat()));
-
-            $this->line(sprintf("LangPaths: %s%s", PHP_EOL,
-                implode("," . PHP_EOL, $this->sdkConfig->getLangPaths()->toArray())));
+            $this->line(sprintf("LangPaths: %s", implode(", ", $this->sdkConfig->getLangPaths()->toArray())));
         }
 
         $this->comment('Process ...');

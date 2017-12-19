@@ -10,14 +10,14 @@ class AbstractionsExportCommand extends AbstractionsBaseCommand
      * @var string
      */
     protected $signature = 'wbt:abstractions:export {--debug}';
-    
+
     /**
      * The console command description.
      *
      * @var string
      */
     protected $description = 'Send abstractions to WBTranslator';
-    
+
     /**
      * Execute the console command.
      *
@@ -29,7 +29,12 @@ class AbstractionsExportCommand extends AbstractionsBaseCommand
 
         $this->startInfo($debug);
 
-        $result = $this->model->export();
+        $result = $this->model->export()->map(function (array $item){
+            $item['name'] = str_limit($item['name'], 20);
+            $item['value'] = str_limit($item['value'], 20);
+
+            return $item;
+        })->toArray();
 
         !empty($result) && $debug ? $this->table(['Name', 'Value', 'CountWords', 'GroupId', 'Id'], $result) :
             $this->info('Data is empty. Nothing sent to WBT');

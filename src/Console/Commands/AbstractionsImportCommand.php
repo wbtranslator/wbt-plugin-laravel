@@ -32,11 +32,16 @@ class AbstractionsImportCommand extends AbstractionsBaseCommand
         $this->startInfo($debug);
 
         $result = $this->model->import()->map(function (Translation $item) {
+            $item->setAbstractName(str_limit($item->getAbstractName(), 20));
+            $item->setOriginalValue(str_limit($item->getOriginalValue(), 20));
+            $item->setTranslation(str_limit($item->getTranslation(), 20));
+            $item->setComment(str_limit($item->getComment(), 20));
             $item->removeGroup();
-            return (array)$item;
-        });
 
-        !empty($result) && $debug ? $this->table(['OriginalName', 'Value', 'Language', 'Translation', 'Comment'], $result->toArray()) :
+            return (array)$item;
+        })->toArray();
+
+        !empty($result) && $debug ? $this->table(['OriginalName', 'Value', 'Language', 'Translation', 'Comment'], $result) :
             $this->info('Data is empty. Nothing get from WBT');
 
         $this->endInfo($result);

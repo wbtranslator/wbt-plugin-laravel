@@ -3,8 +3,8 @@
 namespace WBTranslator\PluginLaravel\Providers;
 
 use Illuminate\Support\ServiceProvider;
-use WBTranslator\PluginLaravel\Console\Commands\AbstractionsExport;
-use WBTranslator\PluginLaravel\Console\Commands\AbstractionsImport;
+use WBTranslator\PluginLaravel\Console\Commands\AbstractionsExportCommand;
+use WBTranslator\PluginLaravel\Console\Commands\AbstractionsImportCommand;
 
 /**
  * Class WBTranslatorServiceProvider
@@ -13,7 +13,7 @@ use WBTranslator\PluginLaravel\Console\Commands\AbstractionsImport;
  */
 class WBTranslatorServiceProvider extends ServiceProvider
 {
-    
+
     public function boot()
     {
         $paths = [
@@ -21,18 +21,18 @@ class WBTranslatorServiceProvider extends ServiceProvider
         ];
 
         $this->commands([
-            AbstractionsExport::class,
-            AbstractionsImport::class
+            AbstractionsExportCommand::class,
+            AbstractionsImportCommand::class
         ]);
 
         $this->publishes($paths, 'config');
     }
-    
+
     public function register()
     {
         $this->mergeConfigFrom($this->getConfigPath(), 'wbt');
     }
-    
+
     private function getConfigPath()
     {
         return realpath(__DIR__ . '/../../') . '/config/wbt.php';
