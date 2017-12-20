@@ -5,6 +5,8 @@ namespace WBTranslator\PluginLaravel\Models;
 use GuzzleHttp\Client;
 use WBTranslator\Sdk;
 use WBTranslator\PluginLaravel\Exceptions\WBTranslatorException;
+use WBTranslator\Sdk\Collection;
+use WBTranslator\Sdk\Config;
 use WBTranslator\Sdk\WBTranslatorSdk;
 
 /**
@@ -18,7 +20,7 @@ class WBTranslatorAbstractionsModel
      * @var WBTranslatorSdk
      */
     protected $sdk;
-
+    
     /**
      * @var
      */
@@ -43,7 +45,7 @@ class WBTranslatorAbstractionsModel
         // Resource Lang Paths
         $langPaths = !empty($this->config['paths']) ? $this->config['paths'] : [];
 
-        $sdkConfig = new Sdk\Config;
+        $sdkConfig = new Config;
         $sdkConfig->setApiKey($this->config['api_key']);
         $sdkConfig->setBasePath(app()->basePath());
         $sdkConfig->setLocale($locale);
@@ -62,11 +64,10 @@ class WBTranslatorAbstractionsModel
         $this->sdk = new WBTranslatorSdk($sdkConfig);
     }
 
-
     /**
      * Send abstractions to WBTranslator
      *
-     * @return Sdk\Collection
+     * @return Collection
      */
     public function export()
     {

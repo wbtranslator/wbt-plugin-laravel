@@ -18,7 +18,6 @@ abstract class AbstractionsBaseCommand extends Command
     /** @var ConfigInterface  */
     protected $sdkConfig;
 
-
     public function __construct()
     {
         $this->model = new WBTranslatorAbstractionsModel();
