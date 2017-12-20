@@ -18,7 +18,6 @@ abstract class AbstractionsBaseCommand extends Command
     /** @var ConfigInterface  */
     protected $sdkConfig;
 
-
     public function __construct()
     {
         $this->model = new WBTranslatorAbstractionsModel();
@@ -40,12 +39,21 @@ abstract class AbstractionsBaseCommand extends Command
             $this->line(sprintf("LangPaths: %s", implode(", ", $this->sdkConfig->getLangPaths()->toArray())));
         }
 
-        $this->comment('Process ...');
+        $this->line('Process ...');
     }
 
     protected function endInfo($result)
     {
         $result ? $this->info(sprintf('Success! We process %d abstractions', count($result))) :
             $this->info('Success');
+    }
+
+    protected function warning(array $warnings)
+    {
+        if ($warnings) {
+            foreach ($warnings as $reason => $warning) {
+                $this->warn(sprintf('WARNING! %s : %s', $reason, $warning));
+            }
+        }
     }
 }
