@@ -20,7 +20,7 @@ class WBTranslatorAbstractionsModel
      * @var WBTranslatorSdk
      */
     protected $sdk;
-    
+
     /**
      * @var
      */
@@ -98,7 +98,7 @@ class WBTranslatorAbstractionsModel
         if ($translations) {
             $this->sdk->locator()->put($translations);
         }
-
+        
         return $translations->map(function (Translation $item) {
             $item->setAbstractName(str_limit($item->getAbstractName(), 20));
             $item->setOriginalValue(str_limit($item->getOriginalValue(), 20));
