@@ -29,16 +29,13 @@ class AbstractionsExportCommand extends AbstractionsBaseCommand
 
         $this->startInfo($debug);
 
-        $result = $this->model->export()->map(function (array $item){
-            $item['name'] = str_limit($item['name'], 20);
-            $item['value'] = str_limit($item['value'], 20);
-
-            return $item;
-        })->toArray();
+        $data = $this->model->export();
+        $result = $data['collection'];
 
         !empty($result) && $debug ? $this->table(['Name', 'Value', 'CountWords', 'GroupId', 'Id'], $result) :
             $this->info('Data is empty. Nothing sent to WBT');
 
         $this->endInfo($result);
+        $this->warning($data['warnings']);
     }
 }

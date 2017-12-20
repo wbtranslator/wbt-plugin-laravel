@@ -2,8 +2,6 @@
 
 namespace WBTranslator\PluginLaravel\Console\Commands;
 
-use WBTranslator\Sdk\Translation;
-
 class AbstractionsImportCommand extends AbstractionsBaseCommand
 {
     /**
@@ -31,15 +29,7 @@ class AbstractionsImportCommand extends AbstractionsBaseCommand
 
         $this->startInfo($debug);
 
-        $result = $this->model->import()->map(function (Translation $item) {
-            $item->setAbstractName(str_limit($item->getAbstractName(), 20));
-            $item->setOriginalValue(str_limit($item->getOriginalValue(), 20));
-            $item->setTranslation(str_limit($item->getTranslation(), 20));
-            $item->setComment(str_limit($item->getComment(), 20));
-            $item->removeGroup();
-
-            return (array)$item;
-        })->toArray();
+        $result = $this->model->import();
 
         !empty($result) && $debug ? $this->table(['OriginalName', 'Value', 'Language', 'Translation', 'Comment'], $result) :
             $this->info('Data is empty. Nothing get from WBT');

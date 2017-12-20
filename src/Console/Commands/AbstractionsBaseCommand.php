@@ -40,12 +40,23 @@ abstract class AbstractionsBaseCommand extends Command
             $this->line(sprintf("LangPaths: %s", implode(", ", $this->sdkConfig->getLangPaths()->toArray())));
         }
 
-        $this->comment('Process ...');
+        $this->line('Process ...');
     }
 
     protected function endInfo($result)
     {
         $result ? $this->info(sprintf('Success! We process %d abstractions', count($result))) :
             $this->info('Success');
+    }
+
+    protected function warning(array $warnings)
+    {
+        if ($warnings) {
+            $this->warn('WARNING!');
+
+            foreach ($warnings as $reason => $warning) {
+                $this->warn(sprintf('%s : %s', $reason, $warning));
+            }
+        }
     }
 }
