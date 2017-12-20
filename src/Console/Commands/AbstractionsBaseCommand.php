@@ -44,13 +44,13 @@ abstract class AbstractionsBaseCommand extends Command
 
     protected function endInfo($result)
     {
-        $result ? $this->info(sprintf('Success! We process %d abstractions', count($result))) :
+        count($result) > 0 ? $this->info(sprintf('Success! We process %d abstractions', count($result))) :
             $this->info('Success');
     }
 
-    protected function warning(array $warnings)
+    protected function warning()
     {
-        if ($warnings) {
+        if ($warnings = $this->model->sdk()->locator()->getWarnings()) {
             foreach ($warnings as $reason => $warning) {
                 $this->warn(sprintf('WARNING! %s : %s', $reason, $warning));
             }
