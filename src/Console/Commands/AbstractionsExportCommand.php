@@ -21,7 +21,7 @@ class AbstractionsExportCommand extends AbstractionsBaseCommand
     /**
      * Execute the console command.
      *
-     * @return mixed
+     * @return void
      */
     public function handle()
     {
@@ -29,13 +29,23 @@ class AbstractionsExportCommand extends AbstractionsBaseCommand
 
         $this->startInfo($debug);
 
-        $data = $this->model->export();
-        $result = $data['collection'];
+        $abstractions = $this->model->export();
 
-        !empty($result) && $debug ? $this->table(['Name', 'Value', 'CountWords', 'GroupId', 'Id'], $result) :
+        if ($abstractions && $debug) {
+            $abstractions = $abstractions->map(function (array $item){
+                $item['name'] = str_limit($item['name'], 20);
+                $item['value'] = str_limit($item['value'], 20);
+
+                return $item;
+            })->toArray();
+
+            $this->table(['Name', 'Value', 'CountWords', 'GroupId', 'Id'], $abstractions);
+
+        } else {
             $this->info('Data is empty. Nothing sent to WBT');
+        }
 
-        $this->endInfo($result);
-        $this->warning($data['warnings']);
+        $this->endInfo($abstractions);
+        $this->warning($this->model->sdk()->locator()->getWarnings());
     }
 }

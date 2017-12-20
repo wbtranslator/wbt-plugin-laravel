@@ -71,19 +71,13 @@ class WBTranslatorAbstractionsModel
      */
     public function export()
     {
-        $data = $this->sdk->locator()->scan();
+        $abstractions = $this->sdk->locator()->scan();
 
-        if (!$data['collection']->isEmpty()) {
-            $data['collection'] = $this->sdk->translations()->create($data['collection'])
-                ->map(function (array $item){
-                    $item['name'] = str_limit($item['name'], 20);
-                    $item['value'] = str_limit($item['value'], 20);
-
-                    return $item;
-                })->toArray();
+        if (!$abstractions->isEmpty()) {
+            return $this->sdk->translations()->create($abstractions);
         }
 
-        return $data;
+        return null;
     }
 
     /**
@@ -98,16 +92,8 @@ class WBTranslatorAbstractionsModel
         if ($translations) {
             $this->sdk->locator()->put($translations);
         }
-        
-        return $translations->map(function (Translation $item) {
-            $item->setAbstractName(str_limit($item->getAbstractName(), 20));
-            $item->setOriginalValue(str_limit($item->getOriginalValue(), 20));
-            $item->setTranslation(str_limit($item->getTranslation(), 20));
-            $item->setComment(str_limit($item->getComment(), 20));
-            $item->removeGroup();
 
-            return (array)$item;
-        })->toArray();
+        return $translations;
     }
 
     public function sdk(): WBTranslatorSdk

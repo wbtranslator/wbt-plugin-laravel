@@ -51,10 +51,8 @@ abstract class AbstractionsBaseCommand extends Command
     protected function warning(array $warnings)
     {
         if ($warnings) {
-            $this->warn('WARNING!');
-
             foreach ($warnings as $reason => $warning) {
-                $this->warn(sprintf('%s : %s', $reason, $warning));
+                $this->warn(sprintf('WARNING! %s : %s', $reason, $warning));
             }
         }
     }
