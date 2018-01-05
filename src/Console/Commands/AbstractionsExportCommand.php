@@ -31,7 +31,7 @@ class AbstractionsExportCommand extends AbstractionsBaseCommand
 
         $abstractions = $this->model->export();
 
-        if (!$abstractions->isEmpty() && $debug) {
+        if ($abstractions && !$abstractions->isEmpty() && $debug) {
             $abstractions = $abstractions->map(function (array $item){
                 $item['name'] = str_limit($item['name'], 20);
                 $item['value'] = str_limit($item['value'], 20);
