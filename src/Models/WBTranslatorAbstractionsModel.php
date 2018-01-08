@@ -35,7 +35,7 @@ class WBTranslatorAbstractionsModel
     {
         $this->config = config('wbt');
 
-        if (!$this->config['api_key']) {
+        if (empty($this->config['api_key'])) {
             throw new WBTranslatorException('Parameter WBT_API_KEY is required', 422);
         }
 

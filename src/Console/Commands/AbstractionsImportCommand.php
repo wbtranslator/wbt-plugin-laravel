@@ -2,6 +2,8 @@
 
 namespace WBTranslator\PluginLaravel\Console\Commands;
 
+use WBTranslator\Sdk\Translation;
+
 class AbstractionsImportCommand extends AbstractionsBaseCommand
 {
     /**
